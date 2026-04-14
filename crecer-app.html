@@ -1,0 +1,1170 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<title>Crecer 🌱</title>
+<link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #F7F4EF; --card: #FFFFFF; --text: #1a1a2e; --muted: #8a8a9a;
+    --border: #E8E4DC; --accent2: #4ECDC4; --green: #27AE60; --red: #E74C3C;
+    --shadow: 0 2px 16px rgba(0,0,0,0.08); --radius: 20px; --radius-sm: 12px;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
+  body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; padding-bottom: 90px; overflow-x: hidden; }
+
+  .header { background: var(--card); padding: 20px 20px 16px; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 100; }
+  .header-top { display: flex; justify-content: space-between; align-items: center; }
+  .logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
+  .logo span { color: var(--accent2); }
+  .sync-indicator { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .sync-ok { background: #E8F8F0; color: var(--green); }
+  .sync-err { background: #FEE2E2; color: var(--red); }
+  .sync-loading { background: #FFF3CD; color: #856404; }
+
+  .children-bar { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; justify-content: center; }
+  .children-bar::-webkit-scrollbar { display: none; }
+  .child-pill { flex-shrink: 0; display: flex; flex-direction: column; align-items: center; gap: 4px; cursor: pointer; }
+  .child-avatar { width: 52px; height: 52px; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 24px; border: 3px solid var(--border); transition: all 0.2s; overflow: hidden; }
+  .child-avatar img { width: 100%; height: 100%; object-fit: cover; border-radius: 50%; }
+  .child-pill.active .child-avatar { border-color: var(--accent2); box-shadow: 0 0 0 3px rgba(78,205,196,0.2); transform: scale(1.08); }
+  .child-pill span { font-size: 11px; font-weight: 700; color: var(--muted); }
+  .child-pill.active span { color: var(--text); }
+
+  .bottom-nav { position: fixed; bottom: 0; left: 50%; transform: translateX(-50%); width: 100%; max-width: 480px; background: var(--card); border-top: 2px solid var(--border); display: flex; z-index: 200; padding-bottom: env(safe-area-inset-bottom); }
+  .nav-btn { flex: 1; display: flex; flex-direction: column; align-items: center; padding: 8px 0 6px; border: none; background: none; cursor: pointer; font-family: 'Nunito', sans-serif; font-size: 9px; font-weight: 700; color: var(--muted); transition: color 0.2s; gap: 2px; }
+  .nav-btn .icon { font-size: 18px; }
+  .nav-btn.active { color: var(--accent2); }
+
+  .page { display: none; padding: 20px 16px; }
+  .page.active { display: block; }
+  .section-title { font-size: 18px; font-weight: 900; margin-bottom: 14px; display: flex; align-items: center; gap: 8px; }
+  .card { background: var(--card); border-radius: var(--radius); padding: 18px; margin-bottom: 14px; box-shadow: var(--shadow); border: 1.5px solid var(--border); }
+
+  .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
+  .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
+  .form-group label { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
+  .form-group input, .form-group select { border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 600; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .form-group input:focus { border-color: var(--accent2); background: #fff; }
+
+  .btn { width: 100%; padding: 15px; border: none; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
+  .btn-primary { background: var(--accent2); color: #fff; }
+  .btn-primary:active { transform: scale(0.97); }
+  .btn-primary:disabled { background: #ccc; cursor: not-allowed; }
+
+  .data-table { width: 100%; border-collapse: collapse; font-size: 13px; white-space: nowrap; }
+  .data-table th { background: var(--bg); font-size: 10px; font-weight: 800; text-transform: uppercase; letter-spacing: 0.5px; color: var(--muted); padding: 10px 12px; text-align: left; border-bottom: 2px solid var(--border); }
+  .data-table td { padding: 11px 12px; border-bottom: 1px solid var(--border); font-weight: 600; vertical-align: middle; }
+  .data-table tr:last-child td { border-bottom: none; }
+  .table-wrap { overflow-x: auto; }
+
+  .chart-wrap { position: relative; height: 240px; }
+  .stats-row { display: flex; gap: 10px; margin-bottom: 14px; }
+  .stat-card { flex: 1; background: var(--card); border-radius: var(--radius-sm); padding: 14px 12px; border: 1.5px solid var(--border); text-align: center; }
+  .stat-val { font-size: 22px; font-weight: 900; }
+  .stat-label { font-size: 10px; font-weight: 700; color: var(--muted); text-transform: uppercase; margin-top: 2px; }
+
+  .modal-overlay { display: none; position: fixed; inset: 0; background: rgba(0,0,0,0.5); z-index: 500; align-items: flex-end; justify-content: center; }
+  .modal-overlay.open { display: flex; }
+  .modal { background: var(--card); border-radius: 28px 28px 0 0; padding: 28px 20px 40px; width: 100%; max-width: 480px; animation: slideUp 0.3s ease; }
+  @keyframes slideUp { from { transform: translateY(100%); } to { transform: translateY(0); } }
+  .modal-title { font-size: 18px; font-weight: 900; margin-bottom: 18px; }
+  .modal-close { float: right; background: var(--bg); border: none; width: 32px; height: 32px; border-radius: 50%; font-size: 16px; cursor: pointer; line-height: 32px; text-align: center; }
+
+  .chip-row { display: flex; gap: 8px; flex-wrap: wrap; margin-bottom: 14px; }
+  .chip { padding: 7px 14px; border-radius: 20px; border: 2px solid var(--border); font-family: 'Nunito', sans-serif; font-size: 13px; font-weight: 700; cursor: pointer; background: var(--bg); transition: all 0.15s; }
+  .chip.active { background: var(--accent2); border-color: var(--accent2); color: #fff; }
+
+  .empty { text-align: center; padding: 40px 20px; color: var(--muted); font-weight: 600; }
+  .empty .emoji { font-size: 48px; margin-bottom: 12px; }
+  .empty p { font-size: 14px; line-height: 1.5; }
+
+  .del-btn { background: none; border: none; cursor: pointer; font-size: 16px; padding: 4px; opacity: 0.5; transition: opacity 0.2s; }
+  .del-btn:active { opacity: 1; }
+
+  .toast { position: fixed; bottom: 100px; left: 50%; transform: translateX(-50%); background: #1a1a2e; color: #fff; padding: 12px 22px; border-radius: 30px; font-size: 13px; font-weight: 700; z-index: 1000; opacity: 0; transition: opacity 0.3s; pointer-events: none; white-space: nowrap; }
+  .toast.show { opacity: 1; }
+
+  .pct-bar-track { height: 8px; background: var(--bg); border-radius: 10px; overflow: hidden; border: 1.5px solid var(--border); }
+  .pct-bar-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
+  .compare-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
+  .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
+  .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
+  .av1{background:#FFE0E0} .av2{background:#E0F4FF} .av3{background:#E0FFE8} .av4{background:#FFF3E0} .av5{background:#F3E0FF}
+
+  /* Loading screen */
+  #loadingScreen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 16px; }
+  #loadingScreen .logo-big { font-size: 48px; font-weight: 900; }
+  #loadingScreen p { color: var(--muted); font-size: 14px; font-weight: 600; }
+  .spinner { width: 36px; height: 36px; border: 4px solid var(--border); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.8s linear infinite; }
+  @keyframes spin { to { transform: rotate(360deg); } }
+</style>
+</head>
+<body>
+
+<!-- Loading -->
+<div id="loadingScreen">
+  <div class="logo-big">🌱</div>
+  <div class="spinner"></div>
+  <p>Conectando con Firebase...</p>
+</div>
+
+<div id="appContent" style="display:none">
+
+<div class="header">
+  <div class="header-top">
+    <div class="logo">crecer <span>🌱</span></div>
+    <div style="display:flex;align-items:center;gap:8px">
+      <span class="sync-indicator sync-loading" id="syncBadge">⏳ Conectando</span>
+      <button onclick="openAddChildModal()" style="background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">+ Hijo</button>
+    </div>
+  </div>
+  <div class="children-bar" id="childrenBar"></div>
+</div>
+
+<!-- PAGE: REGISTRAR -->
+<div class="page active" id="page-registro">
+  <div class="section-title">📋 Nuevo registro <span id="registroChildName" style="font-size:15px;font-weight:700"></span></div>
+  <div class="card">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="inp-fecha" style="width:100%;min-width:0">
+      </div>
+      <div class="form-group">
+        <label>Edad</label>
+        <input type="text" id="inp-edad" placeholder="ej: 6m, 1a 3m" style="width:100%;min-width:0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Peso (kg)</label>
+        <input type="number" id="inp-peso" placeholder="8.5" step="0.1" min="0" style="width:100%;min-width:0">
+      </div>
+      <div class="form-group">
+        <label>Talla (cm)</label>
+        <input type="number" id="inp-talla" placeholder="72" step="0.1" min="0" style="width:100%;min-width:0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="max-width:50%">
+        <label>PC (cm)</label>
+        <input type="number" id="inp-pc" placeholder="45.5" step="0.1" min="0" style="width:100%;min-width:0">
+      </div>
+    </div>
+    <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">💾 Guardar medidas</button>
+  </div>
+  <div class="section-title" style="margin-top:6px">📊 Últimos registros</div>
+  <div class="card" style="padding:0;overflow:hidden;">
+    <div id="recordsBody"></div>
+    <div id="recordsEmpty" class="empty" style="display:none">
+      <div class="emoji">📏</div>
+      <p>Aún no hay registros.<br>¡Agregá la primera medida!</p>
+    </div>
+  </div>
+</div>
+
+<!-- PAGE: GRAFICOS -->
+<div class="page" id="page-graficos">
+  <div class="section-title">📈 Evolución <span id="graficosChildName" style="font-size:15px;font-weight:700"></span></div>
+  <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:10px">
+    <div class="chip-row" id="metricChips" style="margin-bottom:0">
+      <div class="chip active" onclick="selectMetric('talla',this)">Talla</div>
+      <div class="chip" onclick="selectMetric('peso',this)">Peso</div>
+      <div class="chip" onclick="selectMetric('pc',this)">PC</div>
+    </div>
+    <button id="trimBtn" onclick="toggleTrimestral()" style="background:var(--bg);border:2px solid var(--border);border-radius:20px;padding:7px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:700;cursor:pointer;color:var(--muted);white-space:nowrap">📊 Trimestral</button>
+  </div>
+  <div class="card"><div class="chart-wrap"><canvas id="evolutionChart"></canvas></div></div>
+  <div class="stats-row" id="statsRow"></div>
+  <div class="section-title">📉 Percentiles OMS</div>
+  <div class="card"><div id="percentileContent"></div></div>
+</div>
+
+<!-- PAGE: COMPARAR -->
+<div class="page" id="page-comparar">
+  <div class="section-title">👫 Comparación</div>
+  <div class="chip-row" id="compareMetricChips">
+    <div class="chip active" onclick="selectCompareMetric('talla',this)">Talla</div>
+    <div class="chip" onclick="selectCompareMetric('peso',this)">Peso</div>
+    <div class="chip" onclick="selectCompareMetric('pc',this)">PC</div>
+  </div>
+  <div class="card" style="padding:14px">
+    <div class="chart-wrap" style="height:320px"><canvas id="compareChart"></canvas></div>
+  </div>
+  <div class="section-title">👶 Datos de nacimiento</div>
+  <div class="card" style="padding:0;overflow:hidden;"><div class="table-wrap"><table class="data-table" id="birthTable"></table></div></div>
+  <div class="section-title">📋 Tabla comparativa</div>
+  <div class="card" style="padding:0;overflow:hidden;"><div class="table-wrap"><table class="data-table" id="compareTable"></table></div></div>
+  <div class="section-title">📈 Ganancia mensual</div>
+  <div class="card" style="padding:0;overflow:hidden;"><div class="table-wrap"><table class="data-table" id="gainsTable"></table></div></div>
+</div>
+
+<!-- PAGE: RESUMEN -->
+<div class="page" id="page-resumen">
+  <div class="section-title">📄 Resumen general</div>
+  <div id="summaryContent"></div>
+</div>
+
+<!-- PAGE: OBSERVACIONES -->
+<div class="page" id="page-obs">
+  <div class="section-title">📝 Observaciones <span id="obsChildName" style="color:var(--muted);font-size:15px;font-weight:700"></span></div>
+  <div class="card">
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Nueva observación</label>
+      <textarea id="obsText" placeholder="Ej: Empezó a caminar, primera palabra, reacción a vacuna..." style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:600;background:var(--bg);color:var(--text);outline:none;resize:vertical;min-height:90px;transition:border-color 0.2s" onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveObs()">💾 Guardar</button>
+  </div>
+  <div id="obsList"></div>
+</div>
+
+<!-- PAGE: ESTUDIOS -->
+<div class="page" id="page-estudios">
+  <div class="section-title">🩺 Estudios <span id="estudiosChildName" style="color:var(--muted);font-size:15px;font-weight:700"></span></div>
+  <div class="card">
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Tipo de estudio</label>
+      <input type="text" id="estudioTipo" placeholder="Ej: Hemograma, Ecografía, Vacuna..." style="width:100%;min-width:0">
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="estudioFecha" style="width:100%;min-width:0">
+      </div>
+      <div class="form-group">
+        <label>Hora</label>
+        <input type="time" id="estudioHora" style="width:100%;min-width:0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Lugar / Clínica</label>
+        <input type="text" id="estudioLugar" placeholder="Ej: Hospital Italiano..." style="width:100%;min-width:0">
+      </div>
+      <div class="form-group">
+        <label>Edad</label>
+        <input type="text" id="estudioEdad" placeholder="ej: 1a 3m" style="width:100%;min-width:0">
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:12px">
+      <label>Resultado / Notas</label>
+      <textarea id="estudioNota" placeholder="Resultado o descripción..." style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:600;background:var(--bg);color:var(--text);outline:none;resize:vertical;min-height:70px;transition:border-color 0.2s" onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveEstudio()">💾 Guardar</button>
+  </div>
+  <div id="estudiosList"></div>
+</div>
+
+<nav class="bottom-nav">
+  <button class="nav-btn active" onclick="showPage('registro',this)"><span class="icon">📋</span>Registrar</button>
+  <button class="nav-btn" onclick="showPage('graficos',this)"><span class="icon">📈</span>Gráficos</button>
+  <button class="nav-btn" onclick="showPage('comparar',this)"><span class="icon">👫</span>Comparar</button>
+  <button class="nav-btn" onclick="showPage('resumen',this)"><span class="icon">📄</span>Resumen</button>
+  <button class="nav-btn" onclick="showPage('obs',this)"><span class="icon">📝</span>Obs.</button>
+  <button class="nav-btn" onclick="showPage('estudios',this)"><span class="icon">🩺</span>Estudios</button>
+</nav>
+
+<!-- MODAL ADD CHILD -->
+<div class="modal-overlay" id="modalAddChild">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalAddChild')">✕</button>
+    <div class="modal-title">Agregar hijo/a</div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Nombre</label>
+      <input type="text" id="newChildName" placeholder="Nombre del niño/a">
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Foto (URL) — opcional</label>
+      <input type="url" id="newChildPhoto" placeholder="https://i.imgur.com/tuFoto.jpg" oninput="previewPhoto(this.value)">
+      <div id="photoPreviewWrap" style="display:none;margin-top:10px;display:flex;align-items:center;gap:12px">
+        <img id="photoPreview" src="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:3px solid var(--accent2);" onerror="photoError()">
+        <span id="photoStatus" style="font-size:12px;font-weight:700;color:var(--green)">✅ Foto cargada</span>
+      </div>
+      <span style="font-size:11px;color:var(--muted);margin-top:4px;display:block">Subí la foto a <b>imgur.com</b>, clic derecho → "Copiar dirección de imagen" y pegá acá</span>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Emoji (si no usás foto)</label>
+      <div class="chip-row" id="emojiPicker">
+        <div class="chip active" data-emoji="👶" onclick="selectEmoji(this)">👶</div>
+        <div class="chip" data-emoji="🧒" onclick="selectEmoji(this)">🧒</div>
+        <div class="chip" data-emoji="👦" onclick="selectEmoji(this)">👦</div>
+        <div class="chip" data-emoji="👧" onclick="selectEmoji(this)">👧</div>
+        <div class="chip" data-emoji="🐣" onclick="selectEmoji(this)">🐣</div>
+        <div class="chip" data-emoji="⭐" onclick="selectEmoji(this)">⭐</div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:18px">
+      <label>Fecha de nacimiento (opcional)</label>
+      <input type="date" id="newChildBirth">
+    </div>
+    <button class="btn btn-primary" onclick="addChild()">✅ Agregar</button>
+  </div>
+</div>
+
+<!-- MODAL EDIT OBS -->
+<div class="modal-overlay" id="modalEditObs">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalEditObs')">✕</button>
+    <div class="modal-title">✏️ Editar observación</div>
+    <input type="hidden" id="editObsChildId">
+    <input type="hidden" id="editObsId">
+    <div class="form-group" style="margin-bottom:18px">
+      <label>Observación</label>
+      <textarea id="editObsText" style="width:100%;border:2px solid var(--border);border-radius:var(--radius-sm);padding:12px 14px;font-family:'Nunito',sans-serif;font-size:15px;font-weight:600;background:var(--bg);color:var(--text);outline:none;resize:vertical;min-height:100px" onfocus="this.style.borderColor='var(--accent2)'" onblur="this.style.borderColor='var(--border)'"></textarea>
+    </div>
+    <button class="btn btn-primary" onclick="saveEditObs()">💾 Guardar cambios</button>
+  </div>
+</div>
+
+<!-- MODAL EDIT RECORD -->
+<div class="modal-overlay" id="modalEditRecord">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalEditRecord')">✕</button>
+    <div class="modal-title">✏️ Editar registro</div>
+    <input type="hidden" id="editRecordChildId">
+    <input type="hidden" id="editRecordId">
+    <div class="form-row">
+      <div class="form-group">
+        <label>Fecha</label>
+        <input type="date" id="editRecordFecha">
+      </div>
+      <div class="form-group">
+        <label>Edad</label>
+        <input type="text" id="editRecordEdad" placeholder="ej: 6m, 1a 3m">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group">
+        <label>Peso (kg)</label>
+        <input type="number" id="editRecordPeso" placeholder="8.5" step="0.1" min="0">
+      </div>
+      <div class="form-group">
+        <label>Talla (cm)</label>
+        <input type="number" id="editRecordTalla" placeholder="72" step="0.1" min="0">
+      </div>
+    </div>
+    <div class="form-row">
+      <div class="form-group" style="max-width:50%">
+        <label>PC (cm)</label>
+        <input type="number" id="editRecordPc" placeholder="45.5" step="0.1" min="0">
+      </div>
+    </div>
+    <button class="btn btn-primary" onclick="saveEditRecord()">💾 Guardar cambios</button>
+  </div>
+</div>
+
+<!-- MODAL EDIT CHILD -->
+<div class="modal-overlay" id="modalEditChild">
+  <div class="modal">
+    <button class="modal-close" onclick="closeModal('modalEditChild')">✕</button>
+    <div class="modal-title">✏️ Editar hijo/a</div>
+    <input type="hidden" id="editChildId">
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Nombre</label>
+      <input type="text" id="editChildName" placeholder="Nombre del niño/a">
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Foto (URL) — opcional</label>
+      <input type="url" id="editChildPhoto" placeholder="https://i.imgur.com/tuFoto.jpg" oninput="previewEditPhoto(this.value)">
+      <div id="editPhotoPreviewWrap" style="display:none;margin-top:10px;align-items:center;gap:12px">
+        <img id="editPhotoPreview" src="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:3px solid var(--accent2);">
+        <span id="editPhotoStatus" style="font-size:12px;font-weight:700;color:var(--green)">✅ Foto cargada</span>
+      </div>
+      <span style="font-size:11px;color:var(--muted);margin-top:4px;display:block">URL directa de imagen (imgur.com recomendado)</span>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Emoji (si no usás foto)</label>
+      <div class="chip-row" id="editEmojiPicker">
+        <div class="chip active" data-emoji="👶" onclick="selectEditEmoji(this)">👶</div>
+        <div class="chip" data-emoji="🧒" onclick="selectEditEmoji(this)">🧒</div>
+        <div class="chip" data-emoji="👦" onclick="selectEditEmoji(this)">👦</div>
+        <div class="chip" data-emoji="👧" onclick="selectEditEmoji(this)">👧</div>
+        <div class="chip" data-emoji="🐣" onclick="selectEditEmoji(this)">🐣</div>
+        <div class="chip" data-emoji="⭐" onclick="selectEditEmoji(this)">⭐</div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:18px">
+      <label>Fecha de nacimiento</label>
+      <input type="date" id="editChildBirth">
+    </div>
+    <button class="btn btn-primary" onclick="saveEditChild()" style="margin-bottom:10px">💾 Guardar cambios</button>
+    <button class="btn" onclick="deleteChild(document.getElementById('editChildId').value)" style="background:#FEE2E2;color:var(--red);font-weight:800;">🗑️ Eliminar este hijo</button>
+  </div>
+</div>
+
+</div><!-- end appContent -->
+
+<div class="toast" id="toast"></div>
+
+<!-- Firebase SDK -->
+<script type="module">
+import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
+import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+
+const firebaseConfig = {
+  apiKey: "AIzaSyDz3COjzBf5czFNN2bMLD8flZ0L05b8kFk",
+  authDomain: "crecer-57568.firebaseapp.com",
+  databaseURL: "https://crecer-57568-default-rtdb.firebaseio.com",
+  projectId: "crecer-57568",
+  storageBucket: "crecer-57568.firebasestorage.app",
+  messagingSenderId: "533828227725",
+  appId: "1:533828227725:web:fd58bfb2be00f6ebfe08c4",
+  measurementId: "G-M31Q4PDR1Y"
+};
+
+const app = initializeApp(firebaseConfig);
+const db = getDatabase(app);
+
+// ── STATE ──
+let state = { children: [], records: {}, obs: {}, estudios: {}, activeChild: null, selectedEmoji: '👶' };
+const COLORS = ['#a21724','#ed94eb','#1A5276','#FFB347','#B4A7D6','#FF8B94'];
+const AV_BG = ['av1','av2','av3','av4','av5'];
+
+const OMS_HEIGHT = {0:{p3:46.1,p15:47.9,p50:49.9,p85:51.8,p97:53.4},3:{p3:57.3,p15:59.4,p50:61.4,p85:63.4,p97:65.2},6:{p3:63.3,p15:65.5,p50:67.6,p85:69.7,p97:71.6},9:{p3:68.0,p15:70.1,p50:72.3,p85:74.5,p97:76.5},12:{p3:71.3,p15:73.5,p50:75.7,p85:77.9,p97:79.8},18:{p3:76.9,p15:79.2,p50:81.7,p85:84.2,p97:86.4},24:{p3:81.7,p15:84.3,p50:87.1,p85:89.9,p97:92.1},36:{p3:88.7,p15:91.4,p50:94.4,p85:97.3,p97:99.8},48:{p3:94.9,p15:97.9,p50:101.2,p85:104.5,p97:107.3},60:{p3:100.7,p15:103.9,p50:107.4,p85:110.8,p97:113.9}};
+const OMS_WEIGHT = {0:{p3:2.5,p15:2.9,p50:3.3,p85:3.9,p97:4.3},3:{p3:5.0,p15:5.6,p50:6.4,p85:7.2,p97:7.9},6:{p3:6.4,p15:7.1,p50:7.9,p85:8.8,p97:9.7},9:{p3:7.1,p15:7.9,p50:8.9,p85:9.9,p97:10.9},12:{p3:7.7,p15:8.6,p50:9.6,p85:10.7,p97:11.8},18:{p3:8.8,p15:9.8,p50:11.0,p85:12.3,p97:13.5},24:{p3:9.7,p15:10.8,p50:12.2,p85:13.6,p97:15.0},36:{p3:11.3,p15:12.6,p50:14.3,p85:16.0,p97:17.7},48:{p3:12.7,p15:14.2,p50:16.3,p85:18.3,p97:20.3},60:{p3:14.1,p15:15.8,p50:18.3,p85:20.7,p97:23.1}};
+
+// ── FIREBASE SYNC ──
+function setSyncBadge(status) {
+  const b = document.getElementById('syncBadge');
+  if (status === 'ok') { b.className = 'sync-indicator sync-ok'; b.textContent = '✅ Sincronizado'; }
+  else if (status === 'err') { b.className = 'sync-indicator sync-err'; b.textContent = '❌ Sin conexión'; }
+  else { b.className = 'sync-indicator sync-loading'; b.textContent = '⏳ Conectando'; }
+}
+
+async function saveToFirebase() {
+  try {
+    await set(ref(db, 'crecer'), { children: state.children, records: state.records, obs: state.obs||{}, estudios: state.estudios||{}, activeChild: state.activeChild });
+    setSyncBadge('ok');
+  } catch(e) {
+    setSyncBadge('err');
+    showToast('⚠️ Error al guardar. Verificá tu conexión.');
+  }
+}
+
+// Listen for real-time changes from other devices
+onValue(ref(db, 'crecer'), (snapshot) => {
+  const data = snapshot.val();
+  if (data) {
+    state.children = data.children || [];
+    state.records = data.records || {};
+    state.obs = data.obs || {};
+    state.estudios = data.estudios || {};
+    if (!state.activeChild && state.children.length > 0) state.activeChild = state.children[0].id;
+    else if (state.activeChild && !state.children.find(c => c.id === state.activeChild)) state.activeChild = state.children[0]?.id || null;
+
+    // Recalcular ageDays para todos los registros y reordenar
+    let migrated = false;
+    state.children.forEach(child => {
+      const recs = state.records[child.id] || [];
+      recs.forEach(r => {
+        const newDays = ageToDays(r.edad, r.fecha, child.birth);
+        if (newDays !== r.ageDays) { r.ageDays = newDays; r.ageMonths = newDays ? newDays / 30.44 : null; migrated = true; }
+      });
+      recs.sort((a, b) => (a.ageDays ?? 999999) - (b.ageDays ?? 999999));
+    });
+    if (migrated) saveToFirebase();
+
+    renderChildrenBar();
+    renderCurrentPage();
+    setSyncBadge('ok');
+  } else {
+    setSyncBadge('ok');
+  }
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+}, (error) => {
+  setSyncBadge('err');
+  document.getElementById('loadingScreen').style.display = 'none';
+  document.getElementById('appContent').style.display = 'block';
+  showToast('⚠️ No se pudo conectar con Firebase');
+});
+
+// ── NAVIGATION ──
+let currentPage = 'registro';
+window.showPage = (page, btn) => {
+  document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+  document.getElementById('page-' + page).classList.add('active');
+  btn.classList.add('active');
+  currentPage = page;
+  renderCurrentPage();
+};
+function renderCurrentPage() {
+  if (currentPage === 'registro') renderRecordsTable();
+  if (currentPage === 'graficos') renderEvolutionChart();
+  if (currentPage === 'comparar') renderComparison();
+  if (currentPage === 'resumen') renderSummary();
+  if (currentPage === 'obs') renderObs();
+  if (currentPage === 'estudios') renderEstudios();
+}
+
+// ── CHILDREN ──
+function renderChildrenBar() {
+  const bar = document.getElementById('childrenBar');
+  bar.innerHTML = '';
+  state.children.forEach((c, i) => {
+    const div = document.createElement('div');
+    const isActive = state.activeChild === c.id;
+    const color = COLORS[i % COLORS.length];
+    div.className = 'child-pill' + (isActive ? ' active' : '');
+    div.onclick = () => { state.activeChild = c.id; renderChildrenBar(); renderCurrentPage(); };
+    const avatarInner = c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none">${c.emoji}</span>` : c.emoji;
+    const activeStyle = isActive ? `border-color:${color};box-shadow:0 0 0 3px ${color}33;transform:scale(1.08)` : '';
+    const editBtn = isActive ? `<button onclick="event.stopPropagation();openEditChildModal('${c.id}')" style="position:absolute;bottom:-2px;right:-2px;background:${color};border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;line-height:1">✏️</button>` : '';
+    div.innerHTML = `<div class="child-avatar ${AV_BG[i % AV_BG.length]}" style="position:relative;${activeStyle}">${avatarInner}${editBtn}</div><span style="${isActive?`color:${color};font-weight:900`:''}">${c.name.split(' ')[0]}</span>`;
+    bar.appendChild(div);
+  });
+  if (!state.children.length) bar.innerHTML = '<div style="color:var(--muted);font-size:13px;font-weight:600;padding:4px 0;align-self:center;">Agregá tu primer hijo →</div>';
+}
+
+window.openEditChildModal = (id) => {
+  const child = state.children.find(c => c.id === id);
+  if (!child) return;
+  document.getElementById('editChildId').value = id;
+  document.getElementById('editChildName').value = child.name;
+  document.getElementById('editChildBirth').value = child.birth || '';
+  document.getElementById('editChildPhoto').value = child.photo || '';
+  // set emoji
+  document.querySelectorAll('#editEmojiPicker .chip').forEach(c => {
+    c.classList.toggle('active', c.dataset.emoji === child.emoji);
+  });
+  state.selectedEditEmoji = child.emoji || '👶';
+  // preview photo
+  previewEditPhoto(child.photo || '');
+  document.getElementById('modalEditChild').classList.add('open');
+};
+
+window.previewEditPhoto = (url) => {
+  const wrap = document.getElementById('editPhotoPreviewWrap');
+  const img = document.getElementById('editPhotoPreview');
+  const status = document.getElementById('editPhotoStatus');
+  if (!url) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  img.style.display = 'block';
+  status.textContent = '⏳ Cargando...';
+  status.style.color = '#856404';
+  img.src = url;
+  img.onload = () => { status.textContent = '✅ Foto cargada'; status.style.color = 'var(--green)'; };
+  img.onerror = () => { status.textContent = '❌ URL inválida'; status.style.color = 'var(--red)'; };
+};
+
+window.selectEditEmoji = (el) => {
+  document.querySelectorAll('#editEmojiPicker .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  state.selectedEditEmoji = el.dataset.emoji;
+};
+
+window.saveEditChild = async () => {
+  const id = document.getElementById('editChildId').value;
+  const name = document.getElementById('editChildName').value.trim();
+  if (!name) { showToast('⚠️ Ingresá el nombre'); return; }
+  const photo = document.getElementById('editChildPhoto').value.trim();
+  const birth = document.getElementById('editChildBirth').value;
+  const idx = state.children.findIndex(c => c.id === id);
+  if (idx === -1) return;
+  state.children[idx] = { ...state.children[idx], name, photo: photo || '', birth, emoji: state.selectedEditEmoji || '👶' };
+  closeModal('modalEditChild');
+  renderChildrenBar();
+  renderCurrentPage();
+  await saveToFirebase();
+  showToast('✅ Datos actualizados');
+};
+
+window.deleteChild = async (id) => {
+  const child = state.children.find(c => c.id === id);
+  if (!confirm(`¿Eliminar a ${child?.name} y TODOS sus registros? Esta acción no se puede deshacer.`)) return;
+  state.children = state.children.filter(c => c.id !== id);
+  delete state.records[id];
+  state.activeChild = state.children[0]?.id || null;
+  closeModal('modalEditChild');
+  renderChildrenBar();
+  renderCurrentPage();
+  await saveToFirebase();
+  showToast('🗑️ Eliminado');
+};
+
+window.openAddChildModal = () => document.getElementById('modalAddChild').classList.add('open');
+window.closeModal = (id) => document.getElementById(id).classList.remove('open');
+window.selectEmoji = (el) => {
+  document.querySelectorAll('#emojiPicker .chip').forEach(c => c.classList.remove('active'));
+  el.classList.add('active');
+  state.selectedEmoji = el.dataset.emoji;
+};
+window.addChild = async () => {
+  const name = document.getElementById('newChildName').value.trim();
+  if (!name) { showToast('⚠️ Ingresá el nombre'); return; }
+  const id = Date.now().toString();
+  const photo = document.getElementById('newChildPhoto').value.trim();
+  state.children.push({ id, name, emoji: state.selectedEmoji || '👶', birth: document.getElementById('newChildBirth').value, photo: photo || '' });
+  state.records[id] = [];
+  state.activeChild = id;
+  closeModal('modalAddChild');
+  document.getElementById('newChildName').value = '';
+  document.getElementById('newChildBirth').value = '';
+  document.getElementById('newChildPhoto').value = '';
+  document.getElementById('photoPreviewWrap').style.display = 'none';
+  renderChildrenBar();
+  renderCurrentPage();
+  await saveToFirebase();
+  showToast('✅ ' + name + ' agregado/a');
+};
+
+window.previewPhoto = (url) => {
+  const wrap = document.getElementById('photoPreviewWrap');
+  const img = document.getElementById('photoPreview');
+  const status = document.getElementById('photoStatus');
+  if (!url) { wrap.style.display = 'none'; return; }
+  wrap.style.display = 'flex';
+  img.style.display = 'block';
+  status.textContent = '⏳ Cargando...';
+  status.style.color = '#856404';
+  img.src = url;
+  img.onload = () => { status.textContent = '✅ Foto cargada'; status.style.color = 'var(--green)'; };
+  img.onerror = () => { status.textContent = '❌ URL inválida o no es imagen directa'; status.style.color = 'var(--red)'; };
+};
+window.photoError = () => {};
+
+
+// ── RECORDS ──
+window.saveRecord = async () => {
+  if (!state.activeChild) { showToast('⚠️ Seleccioná un hijo primero'); return; }
+  const fecha = document.getElementById('inp-fecha').value;
+  const edad = document.getElementById('inp-edad').value.trim();
+  const peso = parseFloat(document.getElementById('inp-peso').value);
+  const talla = parseFloat(document.getElementById('inp-talla').value);
+  const pc = parseFloat(document.getElementById('inp-pc').value);
+  if (!fecha && !edad) { showToast('⚠️ Ingresá fecha o edad'); return; }
+  if (isNaN(peso) && isNaN(talla) && isNaN(pc)) { showToast('⚠️ Ingresá al menos una medida'); return; }
+
+  const child = state.children.find(c => c.id === state.activeChild);
+  const record = { id: Date.now().toString(), fecha, edad, peso: isNaN(peso)?null:peso, talla: isNaN(talla)?null:talla, pc: isNaN(pc)?null:pc, ageMonths: ageToMonths(edad, fecha, child?.birth), ageDays: ageToDays(edad, fecha, child?.birth) };
+  if (!state.records[state.activeChild]) state.records[state.activeChild] = [];
+  state.records[state.activeChild].push(record);
+  state.records[state.activeChild].sort((a,b) => (a.ageDays ?? a.ageMonths*30.44 ?? 999999)-(b.ageDays ?? b.ageMonths*30.44 ?? 999999));
+
+  ['inp-edad','inp-peso','inp-talla','inp-pc'].forEach(id => document.getElementById(id).value = '');
+  document.getElementById('inp-fecha').value = new Date().toISOString().split('T')[0];
+
+  const btn = document.getElementById('saveBtn');
+  btn.disabled = true; btn.textContent = '⏳ Guardando...';
+  await saveToFirebase();
+  btn.disabled = false; btn.textContent = '💾 Guardar medidas';
+  renderRecordsTable();
+  showToast('💾 Registro guardado y sincronizado');
+};
+
+window.deleteRecord = async (childId, recordId) => {
+  if (!confirm('¿Eliminar este registro?')) return;
+  state.records[childId] = state.records[childId].filter(r => r.id !== recordId);
+  await saveToFirebase();
+  renderRecordsTable();
+  showToast('🗑️ Registro eliminado');
+};
+
+window.openEditRecord = (childId, recordId) => {
+  const record = (state.records[childId] || []).find(r => r.id === recordId);
+  if (!record) return;
+  document.getElementById('editRecordChildId').value = childId;
+  document.getElementById('editRecordId').value = recordId;
+  document.getElementById('editRecordFecha').value = record.fecha || '';
+  document.getElementById('editRecordEdad').value = record.edad || '';
+  document.getElementById('editRecordPeso').value = record.peso ?? '';
+  document.getElementById('editRecordTalla').value = record.talla ?? '';
+  document.getElementById('editRecordPc').value = record.pc ?? '';
+  document.getElementById('modalEditRecord').classList.add('open');
+};
+
+window.saveEditRecord = async () => {
+  const childId = document.getElementById('editRecordChildId').value;
+  const recordId = document.getElementById('editRecordId').value;
+  const fecha = document.getElementById('editRecordFecha').value;
+  const edad = document.getElementById('editRecordEdad').value.trim();
+  const peso = parseFloat(document.getElementById('editRecordPeso').value);
+  const talla = parseFloat(document.getElementById('editRecordTalla').value);
+  const pc = parseFloat(document.getElementById('editRecordPc').value);
+  if (!fecha && !edad) { showToast('⚠️ Ingresá fecha o edad'); return; }
+  if (isNaN(peso) && isNaN(talla) && isNaN(pc)) { showToast('⚠️ Ingresá al menos una medida'); return; }
+  const child = state.children.find(c => c.id === childId);
+  const idx = (state.records[childId] || []).findIndex(r => r.id === recordId);
+  if (idx === -1) return;
+  state.records[childId][idx] = { id: recordId, fecha, edad, peso: isNaN(peso)?null:peso, talla: isNaN(talla)?null:talla, pc: isNaN(pc)?null:pc, ageMonths: ageToMonths(edad, fecha, child?.birth), ageDays: ageToDays(edad, fecha, child?.birth) };
+  state.records[childId].sort((a,b) => (a.ageDays ?? a.ageMonths*30.44 ?? 999999)-(b.ageDays ?? b.ageMonths*30.44 ?? 999999));
+  closeModal('modalEditRecord');
+  await saveToFirebase();
+  renderRecordsTable();
+  showToast('✅ Registro actualizado');
+};
+
+function renderRecordsTable() {
+  const body = document.getElementById('recordsBody');
+  const empty = document.getElementById('recordsEmpty');
+  const records = state.activeChild ? (state.records[state.activeChild] || []) : [];
+  const child = state.children.find(c => c.id === state.activeChild);
+  const childIdx = state.children.findIndex(c => c.id === state.activeChild);
+  const color = COLORS[childIdx % COLORS.length];
+  const nameEl = document.getElementById('registroChildName');
+  if (nameEl) { nameEl.textContent = child ? child.name : ''; nameEl.style.color = child ? color : ''; }
+  if (!records.length) { body.innerHTML = ''; empty.style.display = 'block'; return; }
+  empty.style.display = 'none';
+  body.innerHTML = [...records].reverse().map(r => `
+    <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:8px">
+      <div style="flex:1;min-width:0">
+        <div style="font-weight:800;font-size:14px">${r.edad || fmtDate(r.fecha)}</div>
+        <div style="font-size:11px;color:var(--muted)">${r.fecha ? fmtDate(r.fecha) : ''}</div>
+        <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap">
+          ${r.peso!=null?`<span style="font-size:12px;font-weight:700;background:#FFF0F0;color:#E74C3C;padding:2px 7px;border-radius:8px">⚖️ ${r.peso}kg</span>`:''}
+          ${r.talla!=null?`<span style="font-size:12px;font-weight:700;background:#E8F8F5;color:#27AE60;padding:2px 7px;border-radius:8px">📏 ${r.talla}cm</span>`:''}
+          ${r.pc!=null?`<span style="font-size:12px;font-weight:700;background:#EEF2FF;color:#5B6EE8;padding:2px 7px;border-radius:8px">🔵 ${r.pc}cm</span>`:''}
+        </div>
+      </div>
+      <div style="display:flex;flex-direction:row;gap:4px;flex-shrink:0">
+        <button class="del-btn" onclick="openEditRecord('${state.activeChild}','${r.id}')" style="font-size:18px;opacity:0.6">✏️</button>
+        <button class="del-btn" onclick="deleteRecord('${state.activeChild}','${r.id}')" style="font-size:18px;opacity:0.6">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── CHARTS ──
+let evoChart = null, cmpChart = null;
+let selMetric = 'talla', cmpMetric = 'talla';
+let trimestralMode = false;
+
+window.toggleTrimestral = () => {
+  trimestralMode = !trimestralMode;
+  const btn = document.getElementById('trimBtn');
+  if (trimestralMode) {
+    btn.style.background = 'var(--accent2)';
+    btn.style.borderColor = 'var(--accent2)';
+    btn.style.color = '#fff';
+  } else {
+    btn.style.background = 'var(--bg)';
+    btn.style.borderColor = 'var(--border)';
+    btn.style.color = 'var(--muted)';
+  }
+  renderEvolutionChart();
+};
+
+// Agrupa registros por trimestre y promedia los valores
+function agruparPorTrimestre(records, metric) {
+  const grupos = {}; // clave: trimestre en meses (0,3,6,9,12...)
+  records.forEach(r => {
+    if (r[metric] == null) return;
+    const meses = r.ageMonths || 0;
+    const trimestre = Math.floor(meses / 3) * 3;
+    if (!grupos[trimestre]) grupos[trimestre] = { vals: [], label: null };
+    grupos[trimestre].vals.push(r[metric]);
+    if (!grupos[trimestre].label) grupos[trimestre].label = r.edad || fmtDate(r.fecha);
+  });
+  const keys = Object.keys(grupos).map(Number).sort((a,b)=>a-b);
+  return {
+    labels: keys.map(k => {
+      if (k === 0) return '0-3M';
+      const years = Math.floor(k/12);
+      const months = k % 12;
+      if (years === 0) return `${k}M`;
+      if (months === 0) return `${years}A`;
+      return `${years}A ${months}M`;
+    }),
+    data: keys.map(k => {
+      const vals = grupos[k].vals;
+      return Math.round((vals.reduce((a,b)=>a+b,0)/vals.length)*10)/10;
+    })
+  };
+}
+
+window.selectMetric = (m, el) => { document.querySelectorAll('#metricChips .chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); selMetric=m; renderEvolutionChart(); };
+window.selectCompareMetric = (m, el) => { document.querySelectorAll('#compareMetricChips .chip').forEach(c=>c.classList.remove('active')); el.classList.add('active'); cmpMetric=m; renderComparison(); };
+
+function renderEvolutionChart() {
+  if (!state.activeChild) return;
+  const child = state.children.find(c => c.id === state.activeChild);
+  const childIdx = state.children.findIndex(c => c.id === state.activeChild);
+  const color = COLORS[childIdx % COLORS.length];
+  const nameEl = document.getElementById('graficosChildName');
+  if (nameEl) { nameEl.textContent = child ? child.name : ''; nameEl.style.color = child ? color : ''; }
+  const records = state.records[state.activeChild] || [];
+  const color = COLORS[state.children.findIndex(c=>c.id===state.activeChild) % COLORS.length];
+
+  let labels, data;
+  if (trimestralMode) {
+    const agrupado = agruparPorTrimestre(records, selMetric);
+    labels = agrupado.labels;
+    data = agrupado.data;
+  } else {
+    labels = records.map(r => r.edad || fmtDate(r.fecha));
+    data = records.map(r => r[selMetric]);
+  }
+
+  if (evoChart) evoChart.destroy();
+  evoChart = new Chart(document.getElementById('evolutionChart').getContext('2d'), {
+    type: 'line',
+    data: { labels, datasets: [{ label: metricLabel(selMetric), data, borderColor: color, backgroundColor: color+'22', fill: true, tension: 0.4, pointBackgroundColor: color, pointRadius: 5, borderWidth: 3 }] },
+    options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family:'Nunito', weight:'700' }, maxRotation:30 } }, y: { grid: { color:'#f0f0f0' }, ticks: { font: { family:'Nunito', weight:'700' } } } } }
+  });
+  const valid = data.filter(v=>v!=null);
+  const sr = document.getElementById('statsRow');
+  if (valid.length) {
+    const last=valid[valid.length-1], first=valid[0], diff=(last-first).toFixed(1), unit=selMetric==='peso'?'kg':'cm';
+    sr.innerHTML = `<div class="stat-card"><div class="stat-val">${last}${unit}</div><div class="stat-label">Último</div></div><div class="stat-card"><div class="stat-val">${first}${unit}</div><div class="stat-label">Primero</div></div><div class="stat-card"><div class="stat-val" style="color:var(--green)">+${diff}${unit}</div><div class="stat-label">Total</div></div>`;
+  } else sr.innerHTML = '';
+  renderPercentiles(records);
+}
+
+function renderPercentiles(records) {
+  const el = document.getElementById('percentileContent');
+  if (!records.length) { el.innerHTML='<p style="color:var(--muted);font-size:13px">No hay datos aún.</p>'; return; }
+  const last = records[records.length-1];
+  if (!last.ageMonths) { el.innerHTML='<p style="color:var(--muted);font-size:13px">Ingresá la edad para ver percentiles.</p>'; return; }
+  const ak = closestOmsAge(last.ageMonths), html=[];
+  if (last.talla && OMS_HEIGHT[ak]) html.push(renderPctBar('Talla',last.talla,'cm',calcPct(last.talla,OMS_HEIGHT[ak]),'#4ECDC4'));
+  if (last.peso && OMS_WEIGHT[ak]) html.push(renderPctBar('Peso',last.peso,'kg',calcPct(last.peso,OMS_WEIGHT[ak]),'#FF6B6B'));
+  el.innerHTML = html.join('') || '<p style="color:var(--muted);font-size:13px">Sin datos suficientes.</p>';
+}
+
+function renderPctBar(label,val,unit,pct,color) {
+  const lbl = pct<3?'< P3':pct>97?'> P97':'P'+Math.round(pct);
+  const sc = pct<3||pct>97?'var(--red)':pct<15||pct>85?'#F39C12':'var(--green)';
+  return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:800">${label}: ${val} ${unit}</span><span style="font-size:12px;font-weight:800;color:${sc}">${lbl}</span></div><div class="pct-bar-track"><div class="pct-bar-fill" style="width:${Math.min(Math.max(pct,3),97)}%;background:${color}"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px;font-weight:700"><span>P3</span><span>P15</span><span>P50</span><span>P85</span><span>P97</span></div></div>`;
+}
+
+function calcPct(val,refs) {
+  if(val<=refs.p3) return 3; if(val<=refs.p15) return 3+(val-refs.p3)/(refs.p15-refs.p3)*12;
+  if(val<=refs.p50) return 15+(val-refs.p15)/(refs.p50-refs.p15)*35; if(val<=refs.p85) return 50+(val-refs.p50)/(refs.p85-refs.p50)*35;
+  if(val<=refs.p97) return 85+(val-refs.p85)/(refs.p97-refs.p85)*12; return 97;
+}
+function closestOmsAge(m) { return [0,3,6,9,12,18,24,36,48,60].reduce((a,b)=>Math.abs(b-m)<Math.abs(a-m)?b:a); }
+
+function renderComparison() {
+  const legend = document.getElementById('compareLegend');
+  const table = document.getElementById('compareTable');
+  if (state.children.length < 2) {
+    if (legend) legend.innerHTML='<p style="color:var(--muted);font-size:13px;font-weight:600">Necesitás al menos 2 hijos.</p>';
+    if(cmpChart)cmpChart.destroy(); table.innerHTML=''; return;
+  }
+
+  const datasets = state.children.map((child,i) => {
+    const pts = (state.records[child.id]||[]).filter(r=>r[cmpMetric]!=null&&r.ageMonths).map(r=>({x:r.ageMonths,y:r[cmpMetric]}));
+    return {
+      label: child.name,
+      data: pts,
+      borderColor: COLORS[i%COLORS.length],
+      backgroundColor: 'transparent',
+      fill: false,
+      tension: 0.4,
+      pointBackgroundColor: COLORS[i%COLORS.length],
+      pointRadius: 2,
+      pointHoverRadius: 5,
+      borderWidth: 2.5
+    };
+  });
+
+  if(cmpChart)cmpChart.destroy();
+
+  // Plugin para etiquetas al final de cada línea
+  const endLabelPlugin = {
+    id: 'endLabels',
+    afterDatasetsDraw(chart) {
+      const ctx = chart.ctx;
+      chart.data.datasets.forEach((ds, i) => {
+        const meta = chart.getDatasetMeta(i);
+        if (!meta.data.length) return;
+        const lastPoint = meta.data[meta.data.length - 1];
+        const lastVal = ds.data[ds.data.length - 1];
+        if (!lastPoint || !lastVal) return;
+        ctx.save();
+        ctx.font = 'bold 11px Nunito, sans-serif';
+        ctx.fillStyle = ds.borderColor;
+        ctx.textAlign = 'left';
+        ctx.textBaseline = 'middle';
+        const unit = cmpMetric==='peso'?'kg':'cm';
+        ctx.fillText(`${ds.label} (${lastVal.y}${unit})`, lastPoint.x + 6, lastPoint.y);
+        ctx.restore();
+      });
+    }
+  };
+
+  cmpChart = new Chart(document.getElementById('compareChart').getContext('2d'), {
+    type: 'line',
+    data: { datasets },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      layout: { padding: { right: 90 } },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: ctx => `${ctx.dataset.label}: ${ctx.parsed.y} ${cmpMetric==='peso'?'kg':'cm'}`
+          }
+        }
+      },
+      scales: {
+        x: {
+          type: 'linear',
+          title: { display: true, text: 'Meses de edad', font: { family:'Nunito', weight:'700', size:11 } },
+          grid: { color: '#f5f5f5' },
+          ticks: { font: { family:'Nunito', weight:'700', size:11 }, stepSize: 6 }
+        },
+        y: {
+          title: { display: true, text: metricLabel(cmpMetric), font: { family:'Nunito', weight:'700', size:11 } },
+          grid: { color: '#f0f0f0' },
+          ticks: { font: { family:'Nunito', weight:'700', size:11 } }
+        }
+      }
+    },
+    plugins: [endLabelPlugin]
+  });
+
+  // Tabla de nacimiento
+  const birthTable = document.getElementById('birthTable');
+  const birthRows = state.children.map((c,i) => {
+    const recs = state.records[c.id] || [];
+    // buscar registro 0D o el primero con ageDays === 0
+    const birth = recs.find(r => isNacimiento(r)) || recs.find(r => r.ageDays === 0);
+    return `<tr>
+      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${c.name}</b></td>
+      <td>${birth?.talla != null ? birth.talla + ' cm' : '—'}</td>
+      <td>${birth?.peso != null ? birth.peso + ' kg' : '—'}</td>
+      <td>${birth?.pc != null ? birth.pc + ' cm' : '—'}</td>
+    </tr>`;
+  }).join('');
+  birthTable.innerHTML = `<thead><tr><th>Nombre</th><th>Talla</th><th>Peso</th><th>PC</th></tr></thead><tbody>${birthRows}</tbody>`;
+
+  // Tabla comparativa
+  const unit = cmpMetric==='peso'?'kg':'cm';
+  const rows = state.children.map((c,i)=>{
+    const recs = state.records[c.id]||[];
+    const last = recs.filter(r=>r[cmpMetric]!=null).pop();
+    const first = recs.filter(r=>r[cmpMetric]!=null).shift();
+    const diff = (last && first && last[cmpMetric]!==first[cmpMetric]) ? `+${(last[cmpMetric]-first[cmpMetric]).toFixed(1)}${unit}` : '—';
+    return `<tr>
+      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${c.name}</b></td>
+      <td>${last?.edad||'—'}</td>
+      <td>${last?last[cmpMetric]+' '+unit:'—'}</td>
+      <td style="color:var(--green);font-weight:800">${diff}</td>
+    </tr>`;
+  }).join('');
+  table.innerHTML = `<thead><tr><th>Nombre</th><th>Última edad</th><th>Último valor</th><th>Total</th></tr></thead><tbody>${rows}</tbody>`;
+
+  // Ganancia mensual
+  const gainsTable = document.getElementById('gainsTable');
+  const gainRows = state.children.map((c,i)=>{
+    const recs = state.records[c.id]||[];
+    // peso por mes
+    const pesoRecs = recs.filter(r=>r.peso!=null&&r.ageMonths);
+    const tallaRecs = recs.filter(r=>r.talla!=null&&r.ageMonths);
+
+    let kgMes = '—', cmMes = '—';
+    if (pesoRecs.length >= 2) {
+      const first = pesoRecs[0], last = pesoRecs[pesoRecs.length-1];
+      const meses = last.ageMonths - first.ageMonths;
+      if (meses > 0) kgMes = ((last.peso - first.peso) / meses).toFixed(2) + ' kg';
+    }
+    if (tallaRecs.length >= 2) {
+      const first = tallaRecs[0], last = tallaRecs[tallaRecs.length-1];
+      const meses = last.ageMonths - first.ageMonths;
+      if (meses > 0) cmMes = ((last.talla - first.talla) / meses).toFixed(2) + ' cm';
+    }
+
+    return `<tr>
+      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${c.name}</b></td>
+      <td style="color:#FF6B6B;font-weight:800">${kgMes}</td>
+      <td style="color:var(--accent2);font-weight:800">${cmMes}</td>
+    </tr>`;
+  }).join('');
+  gainsTable.innerHTML = `<thead><tr><th>Nombre</th><th>Kg / mes</th><th>Cm / mes</th></tr></thead><tbody>${gainRows}</tbody>`;
+}
+
+function renderSummary() {
+  const el = document.getElementById('summaryContent');
+  if (!state.children.length) { el.innerHTML='<div class="empty"><div class="emoji">👶</div><p>Agregá hijos para ver el resumen.</p></div>'; return; }
+  el.innerHTML = state.children.map((child,i) => {
+    const records = state.records[child.id]||[], color=COLORS[i%COLORS.length], last=records[records.length-1], first=records[0];
+    const tg=(last?.talla!=null&&first?.talla!=null&&last.talla!==first.talla)?`+${(last.talla-first.talla).toFixed(1)} cm`:'—';
+    const wg=(last?.peso!=null&&first?.peso!=null&&last.peso!==first.peso)?`+${(last.peso-first.peso).toFixed(1)} kg`:'—';
+    const rows=records.map(r=>`<tr><td>${r.edad||fmtDate(r.fecha)}</td><td>${r.fecha?fmtDate(r.fecha):'—'}</td><td>${r.peso!=null?r.peso+' kg':'—'}</td><td>${r.talla!=null?r.talla+' cm':'—'}</td><td>${r.pc!=null?r.pc+' cm':'—'}</td></tr>`).join('');
+    const summaryAvatar = child.photo ? `<img src="${child.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border)">` : `<div class="child-avatar ${AV_BG[i%AV_BG.length]}" style="width:40px;height:40px;font-size:20px">${child.emoji}</div>`;
+    return `<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">${summaryAvatar}<div><div style="font-size:16px;font-weight:900">${child.name}</div><div style="font-size:12px;color:var(--muted);font-weight:600">${records.length} registro${records.length!==1?'s':''}</div></div></div><div class="stats-row" style="margin-bottom:12px"><div class="stat-card"><div class="stat-val" style="color:${color}">${records.length}</div><div class="stat-label">Registros</div></div><div class="stat-card"><div class="stat-val" style="color:var(--green);font-size:16px">${tg}</div><div class="stat-label">Crecimiento</div></div><div class="stat-card"><div class="stat-val" style="color:#FF6B6B;font-size:16px">${wg}</div><div class="stat-label">Peso ganado</div></div></div>${records.length?`<div class="table-wrap"><table class="data-table"><thead><tr><th>Edad</th><th>Fecha</th><th>Peso</th><th>Talla</th><th>PC</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Sin registros aún.</p>'}</div>`;
+  }).join('');
+}
+
+// ── OBSERVACIONES ──
+window.saveObs = async () => {
+  if (!state.activeChild) { showToast('⚠️ Seleccioná un hijo'); return; }
+  const text = document.getElementById('obsText').value.trim();
+  if (!text) { showToast('⚠️ Escribí algo primero'); return; }
+  if (!state.obs) state.obs = {};
+  if (!state.obs[state.activeChild]) state.obs[state.activeChild] = [];
+  state.obs[state.activeChild].push({ id: Date.now().toString(), text, fecha: new Date().toISOString().split('T')[0] });
+  document.getElementById('obsText').value = '';
+  await saveToFirebase();
+  renderObs();
+  showToast('📝 Observación guardada');
+};
+
+window.deleteObs = async (childId, id) => {
+  if (!confirm('¿Eliminar esta observación?')) return;
+  state.obs[childId] = state.obs[childId].filter(o => o.id !== id);
+  await saveToFirebase();
+  renderObs();
+};
+
+window.openEditObs = (childId, id) => {
+  const obs = (state.obs?.[childId] || []).find(o => o.id === id);
+  if (!obs) return;
+  document.getElementById('editObsChildId').value = childId;
+  document.getElementById('editObsId').value = id;
+  document.getElementById('editObsText').value = obs.text;
+  document.getElementById('modalEditObs').classList.add('open');
+};
+
+window.saveEditObs = async () => {
+  const childId = document.getElementById('editObsChildId').value;
+  const id = document.getElementById('editObsId').value;
+  const text = document.getElementById('editObsText').value.trim();
+  if (!text) { showToast('⚠️ Escribí algo'); return; }
+  const idx = (state.obs[childId] || []).findIndex(o => o.id === id);
+  if (idx === -1) return;
+  state.obs[childId][idx].text = text;
+  closeModal('modalEditObs');
+  await saveToFirebase();
+  renderObs();
+  showToast('✅ Observación actualizada');
+};
+
+function renderObs() {
+  const el = document.getElementById('obsList');
+  if (!el) return;
+  const child = state.children.find(c => c.id === state.activeChild);
+  const childIdx = state.children.findIndex(c => c.id === state.activeChild);
+  const color = COLORS[childIdx % COLORS.length];
+  const nameEl = document.getElementById('obsChildName');
+  if (nameEl) { nameEl.textContent = child ? child.name : ''; nameEl.style.color = child ? color : 'var(--muted)'; }
+  const items = state.activeChild ? (state.obs?.[state.activeChild] || []) : [];
+  if (!items.length) { el.innerHTML = '<div class="empty"><div class="emoji">📝</div><p>Sin observaciones aún.</p></div>'; return; }
+  el.innerHTML = [...items].reverse().map(o => `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">${fmtDate(o.fecha)}</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;white-space:pre-wrap">${o.text}</div>
+        </div>
+        <div style="display:flex;flex-direction:row;gap:4px;flex-shrink:0">
+          <button class="del-btn" onclick="openEditObs('${state.activeChild}','${o.id}')" style="font-size:18px;opacity:0.6">✏️</button>
+          <button class="del-btn" onclick="deleteObs('${state.activeChild}','${o.id}')" style="font-size:18px;opacity:0.6">🗑️</button>
+        </div>
+      </div>
+    </div>`).join('');
+}
+
+// ── ESTUDIOS ──
+window.saveEstudio = async () => {
+  if (!state.activeChild) { showToast('⚠️ Seleccioná un hijo'); return; }
+  const tipo = document.getElementById('estudioTipo').value.trim();
+  if (!tipo) { showToast('⚠️ Ingresá el tipo de estudio'); return; }
+  const fecha = document.getElementById('estudioFecha').value;
+  const hora = document.getElementById('estudioHora').value;
+  const lugar = document.getElementById('estudioLugar').value.trim();
+  const edad = document.getElementById('estudioEdad').value.trim();
+  const nota = document.getElementById('estudioNota').value.trim();
+  if (!state.estudios) state.estudios = {};
+  if (!state.estudios[state.activeChild]) state.estudios[state.activeChild] = [];
+  state.estudios[state.activeChild].push({ id: Date.now().toString(), tipo, fecha, hora, lugar, edad, nota });
+  document.getElementById('estudioTipo').value = '';
+  document.getElementById('estudioFecha').value = '';
+  document.getElementById('estudioHora').value = '';
+  document.getElementById('estudioLugar').value = '';
+  document.getElementById('estudioEdad').value = '';
+  document.getElementById('estudioNota').value = '';
+  await saveToFirebase();
+  renderEstudios();
+  showToast('🩺 Estudio guardado');
+};
+
+window.deleteEstudio = async (childId, id) => {
+  if (!confirm('¿Eliminar este estudio?')) return;
+  state.estudios[childId] = state.estudios[childId].filter(e => e.id !== id);
+  await saveToFirebase();
+  renderEstudios();
+};
+
+function renderEstudios() {
+  const el = document.getElementById('estudiosList');
+  if (!el) return;
+  const child = state.children.find(c => c.id === state.activeChild);
+  const childIdx = state.children.findIndex(c => c.id === state.activeChild);
+  const color = COLORS[childIdx % COLORS.length];
+  const nameEl = document.getElementById('estudiosChildName');
+  if (nameEl) { nameEl.textContent = child ? child.name : ''; nameEl.style.color = child ? color : 'var(--muted)'; }
+  const items = state.activeChild ? (state.estudios?.[state.activeChild] || []) : [];
+  if (!items.length) { el.innerHTML = '<div class="empty"><div class="emoji">🩺</div><p>Sin estudios aún.</p></div>'; return; }
+  el.innerHTML = [...items].reverse().map(e => `
+    <div class="card" style="margin-bottom:10px">
+      <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
+        <div style="flex:1">
+          <div style="font-size:15px;font-weight:900;margin-bottom:4px">${e.tipo}</div>
+          <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px;display:flex;flex-wrap:wrap;gap:8px">
+            ${e.fecha ? `<span>📅 ${fmtDate(e.fecha)}${e.hora ? ' ' + e.hora : ''}</span>` : ''}
+            ${e.lugar ? `<span>📍 ${e.lugar}</span>` : ''}
+            ${e.edad ? `<span>👶 ${e.edad}</span>` : ''}
+          </div>
+          ${e.nota ? `<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.5;white-space:pre-wrap">${e.nota}</div>` : ''}
+        </div>
+        <button class="del-btn" onclick="deleteEstudio('${state.activeChild}','${e.id}')" style="font-size:18px;flex-shrink:0;opacity:0.6;align-self:flex-start">🗑️</button>
+      </div>
+    </div>`).join('');
+}
+
+// ── HELPERS ──
+function fmtDate(d) { if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
+function metricLabel(m) { return {talla:'Talla (cm)',peso:'Peso (kg)',pc:'PC (cm)'}[m]||m; }
+
+// Convierte edad texto a días totales para ordenar con precisión
+// Soporta: 0D, 14D, 1M, 1M 14D, 1A, 1A 3M, 1A 3M 14D
+function ageToDays(edadStr, fecha, birthDate) {
+  if (edadStr) {
+    const str = edadStr.trim().toUpperCase();
+    // Si tiene D, A o M explícito — parsear aunque sea 0
+    if (/[DAM]/.test(str)) {
+      let days = 0;
+      const ya = str.match(/(\d+)\s*A/);
+      const ym = str.match(/(\d+)\s*M/);
+      const yd = str.match(/(\d+)\s*D/);
+      if (ya) days += parseInt(ya[1]) * 365;
+      if (ym) days += parseInt(ym[1]) * 30.44;
+      if (yd) days += parseInt(yd[1]);
+      return days; // puede ser 0, es válido
+    }
+  }
+  if (fecha && birthDate) {
+    return Math.round((new Date(fecha) - new Date(birthDate)) / (1000 * 60 * 60 * 24));
+  }
+  return null;
+}
+
+// Para percentiles OMS seguimos usando meses
+function ageToMonths(edadStr, fecha, birthDate) {
+  const d = ageToDays(edadStr, fecha, birthDate);
+  return d != null ? d / 30.44 : null;
+}
+
+// Detecta si un registro es de nacimiento (0D o edad = 0 días)
+function isNacimiento(r) {
+  if (!r.edad) return false;
+  const str = r.edad.trim().toUpperCase();
+  return str === '0D' || str === '0 D';
+}
+
+function showToast(msg) { const t=document.getElementById('toast'); t.textContent=msg; t.classList.add('show'); setTimeout(()=>t.classList.remove('show'),2500); }
+window.showToast = showToast;
+
+// Init date
+document.getElementById('inp-fecha').value = new Date().toISOString().split('T')[0];
+</script>
+</body>
+</html>
