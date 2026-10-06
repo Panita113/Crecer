@@ -5,10 +5,10 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
-<meta name="apple-mobile-web-app-title" content="Crecer">
+<meta name="apple-mobile-web-app-title" content="Nenes">
 <meta name="apple-mobile-web-app-status-bar-style" content="default">
 <meta name="theme-color" content="#F7F4EF">
-<title>Crecer 🌱</title>
+<title>Nenes</title>
 <link rel="icon" type="image/png" sizes="32x32" href="iconos/favicon-32.png">
 <link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
 <link rel="manifest" href="manifest.json">
@@ -23,14 +23,7 @@
   * { box-sizing: border-box; margin: 0; padding: 0; -webkit-tap-highlight-color: transparent; }
   body { font-family: 'Nunito', sans-serif; background: var(--bg); color: var(--text); min-height: 100vh; max-width: 480px; margin: 0 auto; padding-bottom: 90px; overflow-x: hidden; }
 
-  .header { background: var(--card); padding: 20px 20px 16px; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 100; }
-  .header-top { display: flex; justify-content: space-between; align-items: center; }
-  .logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
-  .logo span { color: var(--accent2); }
-  .sync-indicator { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
-  .sync-ok { background: #E8F8F0; color: var(--green); }
-  .sync-err { background: #FEE2E2; color: var(--red); }
-  .sync-loading { background: #FFF3CD; color: #856404; }
+  .header { background: var(--card); padding: 12px 16px 4px; border-bottom: 2px solid var(--border); position: sticky; top: 0; z-index: 100; }
 
   .children-bar { display: flex; gap: 10px; overflow-x: auto; padding: 4px 2px 10px; scrollbar-width: none; justify-content: center; }
   .children-bar::-webkit-scrollbar { display: none; }
@@ -99,7 +92,7 @@
   .pct-bar-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
   .pct-marcas { position: relative; height: 14px; margin-top: 3px; font-size: 10px; color: var(--muted); font-weight: 700; }
   .pct-marcas span { position: absolute; transform: translateX(-50%); }
-  .banner-prueba { display: none; margin: -20px -20px 14px; padding: 6px 12px; background: #FFB347; color: #fff; font-size: 12px; font-weight: 900; text-align: center; letter-spacing: 0.3px; }
+  .banner-prueba { display: none; margin: -12px -16px 10px; padding: 6px 12px; background: #FFB347; color: #fff; font-size: 12px; font-weight: 900; text-align: center; letter-spacing: 0.3px; }
   .compare-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
   .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
@@ -107,7 +100,7 @@
 
   /* Loading screen */
   #loadingScreen { position: fixed; inset: 0; background: var(--bg); display: flex; flex-direction: column; align-items: center; justify-content: center; z-index: 9999; gap: 16px; }
-  #loadingScreen .logo-big { font-size: 48px; font-weight: 900; }
+  .icono-app { width: 96px; height: 96px; border-radius: 22px; box-shadow: var(--shadow); }
   #loadingScreen p { color: var(--muted); font-size: 14px; font-weight: 600; }
   .spinner { width: 36px; height: 36px; border: 4px solid var(--border); border-top-color: var(--accent2); border-radius: 50%; animation: spin 0.8s linear infinite; }
   @keyframes spin { to { transform: rotate(360deg); } }
@@ -117,7 +110,7 @@
 
 <!-- Loading -->
 <div id="loadingScreen">
-  <div class="logo-big">🌱</div>
+  <img src="iconos/icono-192.png" class="icono-app" alt="">
   <div class="spinner"></div>
   <p>Conectando con Firebase...</p>
 </div>
@@ -126,13 +119,6 @@
 
 <div class="header">
   <div class="banner-prueba" id="bannerPrueba">🧪 MODO PRUEBA · estos no son los datos reales</div>
-  <div class="header-top">
-    <div class="logo">crecer <span>🌱</span></div>
-    <div style="display:flex;align-items:center;gap:8px">
-      <span class="sync-indicator sync-loading" id="syncBadge">⏳ Conectando</span>
-      <button onclick="openAddChildModal()" style="background:var(--accent2);color:#fff;border:none;border-radius:10px;padding:8px 14px;font-family:'Nunito',sans-serif;font-size:13px;font-weight:800;cursor:pointer;">+ Hijo</button>
-    </div>
-  </div>
   <div class="children-bar" id="childrenBar"></div>
 </div>
 
@@ -168,7 +154,7 @@
     </div>
     <button class="btn btn-primary" id="saveBtn" onclick="saveRecord()">💾 Guardar medidas</button>
   </div>
-  <div class="section-title" style="margin-top:6px">📊 Últimos registros</div>
+  <div class="section-title" style="margin-top:6px">📊 Últimos registros <span id="registrosChildName" style="font-size:15px;font-weight:700"></span></div>
   <div class="card" style="padding:0;overflow:hidden;">
     <div id="recordsBody"></div>
     <div id="recordsEmpty" class="empty" style="display:none">
@@ -462,13 +448,6 @@ const COLORS = ['#a21724','#ed94eb','#1A5276','#FFB347','#B4A7D6','#FF8B94'];
 const AV_BG = ['av1','av2','av3','av4','av5'];
 
 // ── FIREBASE SYNC ──
-function setSyncBadge(status) {
-  const b = document.getElementById('syncBadge');
-  if (status === 'ok') { b.className = 'sync-indicator sync-ok'; b.textContent = '✅ Sincronizado'; }
-  else if (status === 'err') { b.className = 'sync-indicator sync-err'; b.textContent = '❌ Sin conexión'; }
-  else { b.className = 'sync-indicator sync-loading'; b.textContent = '⏳ Conectando'; }
-}
-
 // Guarda solo las partes indicadas (ej: 'children', 'records/123') en vez de toda la base,
 // así un guardado no pisa lo que otro dispositivo cambió en otra parte.
 async function saveToFirebase(...rutas) {
@@ -480,10 +459,8 @@ async function saveToFirebase(...rutas) {
   });
   try {
     await update(ref(db, DB_RAIZ), cambios);
-    setSyncBadge('ok');
     return true;
   } catch(e) {
-    setSyncBadge('err');
     showToast('⚠️ Error al guardar. Verificá tu conexión.');
     return false;
   }
@@ -512,10 +489,8 @@ onValue(ref(db, DB_RAIZ), (snapshot) => {
   if (!state.children.find(c => c.id === state.activeChild)) state.activeChild = hijoRecordado() || state.children[0]?.id || null;
   renderChildrenBar();
   renderCurrentPage();
-  setSyncBadge('ok');
   mostrarPantalla('app');
 }, (error) => {
-  setSyncBadge('err');
   mostrarPantalla('app');
   showToast('⚠️ No se pudo conectar con Firebase');
 });
@@ -567,7 +542,15 @@ function renderChildrenBar() {
     div.innerHTML = `<div class="child-avatar ${AV_BG[i % AV_BG.length]}" style="position:relative;${activeStyle}">${avatarInner}${editBtn}</div><span style="${isActive?`color:${color};font-weight:900`:''}">${esc(c.name.split(' ')[0])}</span>`;
     bar.appendChild(div);
   });
-  if (!state.children.length) bar.innerHTML = '<div style="color:var(--muted);font-size:13px;font-weight:600;padding:4px 0;align-self:center;">Agregá tu primer hijo →</div>';
+  if (MODO_PRUEBA) {
+    const mas = document.createElement('div');
+    mas.className = 'child-pill';
+    mas.onclick = () => openAddChildModal();
+    mas.innerHTML = '<div class="child-avatar" style="background:var(--bg);color:var(--muted);font-size:26px;font-weight:700">+</div><span>Agregar</span>';
+    bar.appendChild(mas);
+  } else if (!state.children.length) {
+    bar.innerHTML = '<div style="color:var(--muted);font-size:13px;font-weight:600;padding:4px 0;align-self:center;">No hay hijos cargados</div>';
+  }
 }
 
 window.openEditChildModal = (id) => {
@@ -767,7 +750,8 @@ function renderRecordsTable() {
   const childIdx = state.children.findIndex(c => c.id === state.activeChild);
   const color = COLORS[childIdx % COLORS.length];
   const nameEl = document.getElementById('registroChildName');
-  if (nameEl) { nameEl.textContent = child ? child.name : ''; nameEl.style.color = child ? color : ''; }
+  const nameEl2 = document.getElementById('registrosChildName');
+  [nameEl, nameEl2].forEach(el => { el.textContent = child ? child.name : ''; el.style.color = child ? color : ''; });
   if (!records.length) { body.innerHTML = ''; empty.style.display = 'block'; return; }
   empty.style.display = 'none';
   body.innerHTML = [...records].reverse().map(r => `
@@ -1232,7 +1216,7 @@ window.showToast = showToast;
 document.getElementById('inp-fecha').value = hoyISO();
 if (MODO_PRUEBA) {
   document.getElementById('bannerPrueba').style.display = 'block';
-  document.title = 'Crecer (prueba)';
+  document.title = 'Nenes (prueba)';
 }
 </script>
 </body>

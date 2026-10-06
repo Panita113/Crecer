@@ -1,6 +1,6 @@
 {
-  "name": "Crecer",
-  "short_name": "Crecer",
+  "name": "Nenes",
+  "short_name": "Nenes",
   "description": "Seguimiento del crecimiento de los nenes",
   "start_url": "./crecer-app.html",
   "scope": "./",
