@@ -5,7 +5,13 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Crecer">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="theme-color" content="#F7F4EF">
 <title>Crecer 🌱</title>
+<link rel="icon" type="image/png" sizes="32x32" href="iconos/favicon-32.png">
+<link rel="apple-touch-icon" href="iconos/apple-touch-icon.png">
+<link rel="manifest" href="manifest.json">
 <link href="https://fonts.googleapis.com/css2?family=Nunito:wght@400;600;700;800;900&display=swap" rel="stylesheet">
 <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
 <style>
@@ -21,7 +27,7 @@
   .header-top { display: flex; justify-content: space-between; align-items: center; }
   .logo { font-size: 22px; font-weight: 900; letter-spacing: -0.5px; }
   .logo span { color: var(--accent2); }
-  .sync-indicator { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; }
+  .sync-indicator { font-size: 11px; font-weight: 700; padding: 4px 10px; border-radius: 20px; white-space: nowrap; }
   .sync-ok { background: #E8F8F0; color: var(--green); }
   .sync-err { background: #FEE2E2; color: var(--red); }
   .sync-loading { background: #FFF3CD; color: #856404; }
@@ -48,7 +54,7 @@
   .form-row { display: flex; gap: 10px; margin-bottom: 12px; }
   .form-group { flex: 1; display: flex; flex-direction: column; gap: 5px; }
   .form-group label { font-size: 11px; font-weight: 800; color: var(--muted); text-transform: uppercase; letter-spacing: 0.5px; }
-  .form-group input, .form-group select { border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 600; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; -webkit-appearance: none; }
+  .form-group input, .form-group select { border: 2px solid var(--border); border-radius: var(--radius-sm); padding: 12px 14px; font-family: 'Nunito', sans-serif; font-size: 15px; font-weight: 600; background: var(--bg); color: var(--text); outline: none; transition: border-color 0.2s; -webkit-appearance: none; width: 100%; min-width: 0; }
   .form-group input:focus { border-color: var(--accent2); background: #fff; }
 
   .btn { width: 100%; padding: 15px; border: none; border-radius: var(--radius-sm); font-family: 'Nunito', sans-serif; font-size: 16px; font-weight: 800; cursor: pointer; transition: all 0.15s; display: flex; align-items: center; justify-content: center; gap: 8px; }
@@ -91,6 +97,9 @@
 
   .pct-bar-track { height: 8px; background: var(--bg); border-radius: 10px; overflow: hidden; border: 1.5px solid var(--border); }
   .pct-bar-fill { height: 100%; border-radius: 10px; transition: width 0.5s ease; }
+  .pct-marcas { position: relative; height: 14px; margin-top: 3px; font-size: 10px; color: var(--muted); font-weight: 700; }
+  .pct-marcas span { position: absolute; transform: translateX(-50%); }
+  .banner-prueba { display: none; margin: -20px -20px 14px; padding: 6px 12px; background: #FFB347; color: #fff; font-size: 12px; font-weight: 900; text-align: center; letter-spacing: 0.3px; }
   .compare-legend { display: flex; gap: 12px; flex-wrap: wrap; margin-bottom: 12px; }
   .legend-item { display: flex; align-items: center; gap: 6px; font-size: 12px; font-weight: 700; }
   .legend-dot { width: 12px; height: 12px; border-radius: 50%; flex-shrink: 0; }
@@ -116,6 +125,7 @@
 <div id="appContent" style="display:none">
 
 <div class="header">
+  <div class="banner-prueba" id="bannerPrueba">🧪 MODO PRUEBA · estos no son los datos reales</div>
   <div class="header-top">
     <div class="logo">crecer <span>🌱</span></div>
     <div style="display:flex;align-items:center;gap:8px">
@@ -188,6 +198,11 @@
 <!-- PAGE: COMPARAR -->
 <div class="page" id="page-comparar">
   <div class="section-title">👫 Comparación</div>
+  <div id="compareEmpty" class="empty" style="display:none">
+    <div class="emoji">👫</div>
+    <p>Necesitás al menos 2 hijos<br>para comparar.</p>
+  </div>
+  <div id="compareContent">
   <div class="chip-row" id="compareMetricChips">
     <div class="chip active" onclick="selectCompareMetric('talla',this)">Talla</div>
     <div class="chip" onclick="selectCompareMetric('peso',this)">Peso</div>
@@ -202,6 +217,7 @@
   <div class="card" style="padding:0;overflow:hidden;"><div class="table-wrap"><table class="data-table" id="compareTable"></table></div></div>
   <div class="section-title">📈 Ganancia mensual</div>
   <div class="card" style="padding:0;overflow:hidden;"><div class="table-wrap"><table class="data-table" id="gainsTable"></table></div></div>
+  </div>
 </div>
 
 <!-- PAGE: RESUMEN -->
@@ -281,8 +297,8 @@
     <div class="form-group" style="margin-bottom:14px">
       <label>Foto (URL) — opcional</label>
       <input type="url" id="newChildPhoto" placeholder="https://i.imgur.com/tuFoto.jpg" oninput="previewPhoto(this.value)">
-      <div id="photoPreviewWrap" style="display:none;margin-top:10px;display:flex;align-items:center;gap:12px">
-        <img id="photoPreview" src="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:3px solid var(--accent2);" onerror="photoError()">
+      <div id="photoPreviewWrap" style="display:none;margin-top:10px;align-items:center;gap:12px">
+        <img id="photoPreview" src="" style="width:56px;height:56px;border-radius:50%;object-fit:cover;border:3px solid var(--accent2);">
         <span id="photoStatus" style="font-size:12px;font-weight:700;color:var(--green)">✅ Foto cargada</span>
       </div>
       <span style="font-size:11px;color:var(--muted);margin-top:4px;display:block">Subí la foto a <b>imgur.com</b>, clic derecho → "Copiar dirección de imagen" y pegá acá</span>
@@ -296,6 +312,13 @@
         <div class="chip" data-emoji="👧" onclick="selectEmoji(this)">👧</div>
         <div class="chip" data-emoji="🐣" onclick="selectEmoji(this)">🐣</div>
         <div class="chip" data-emoji="⭐" onclick="selectEmoji(this)">⭐</div>
+      </div>
+    </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Sexo (para los percentiles OMS)</label>
+      <div class="chip-row" id="sexoPicker" style="margin-bottom:0">
+        <div class="chip" data-sexo="F" onclick="selectSexo('sexoPicker',this)">👧 Nena</div>
+        <div class="chip" data-sexo="M" onclick="selectSexo('sexoPicker',this)">👦 Varón</div>
       </div>
     </div>
     <div class="form-group" style="margin-bottom:18px">
@@ -388,6 +411,13 @@
         <div class="chip" data-emoji="⭐" onclick="selectEditEmoji(this)">⭐</div>
       </div>
     </div>
+    <div class="form-group" style="margin-bottom:14px">
+      <label>Sexo (para los percentiles OMS)</label>
+      <div class="chip-row" id="editSexoPicker" style="margin-bottom:0">
+        <div class="chip" data-sexo="F" onclick="selectSexo('editSexoPicker',this)">👧 Nena</div>
+        <div class="chip" data-sexo="M" onclick="selectSexo('editSexoPicker',this)">👦 Varón</div>
+      </div>
+    </div>
     <div class="form-group" style="margin-bottom:18px">
       <label>Fecha de nacimiento</label>
       <input type="date" id="editChildBirth">
@@ -404,7 +434,8 @@
 <!-- Firebase SDK -->
 <script type="module">
 import { initializeApp } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-app.js";
-import { getDatabase, ref, set, get, remove, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { getDatabase, ref, update, onValue } from "https://www.gstatic.com/firebasejs/11.6.0/firebase-database.js";
+import { percentilOMS, EDAD_MAX_OMS } from "./oms.js";
 
 const firebaseConfig = {
   apiKey: "AIzaSyDz3COjzBf5czFNN2bMLD8flZ0L05b8kFk",
@@ -420,13 +451,15 @@ const firebaseConfig = {
 const app = initializeApp(firebaseConfig);
 const db = getDatabase(app);
 
+// Modo prueba: abrir la app con ?prueba en la URL usa datos aparte (nodo crecer-prueba)
+// para probar cambios sin tocar los registros reales.
+const MODO_PRUEBA = new URLSearchParams(location.search).has('prueba');
+const DB_RAIZ = MODO_PRUEBA ? 'crecer-prueba' : 'crecer';
+
 // ── STATE ──
-let state = { children: [], records: {}, obs: {}, estudios: {}, activeChild: null, selectedEmoji: '👶' };
+let state = { children: [], records: {}, obs: {}, estudios: {}, activeChild: null, selectedEmoji: '👶', cargado: false };
 const COLORS = ['#a21724','#ed94eb','#1A5276','#FFB347','#B4A7D6','#FF8B94'];
 const AV_BG = ['av1','av2','av3','av4','av5'];
-
-const OMS_HEIGHT = {0:{p3:46.1,p15:47.9,p50:49.9,p85:51.8,p97:53.4},3:{p3:57.3,p15:59.4,p50:61.4,p85:63.4,p97:65.2},6:{p3:63.3,p15:65.5,p50:67.6,p85:69.7,p97:71.6},9:{p3:68.0,p15:70.1,p50:72.3,p85:74.5,p97:76.5},12:{p3:71.3,p15:73.5,p50:75.7,p85:77.9,p97:79.8},18:{p3:76.9,p15:79.2,p50:81.7,p85:84.2,p97:86.4},24:{p3:81.7,p15:84.3,p50:87.1,p85:89.9,p97:92.1},36:{p3:88.7,p15:91.4,p50:94.4,p85:97.3,p97:99.8},48:{p3:94.9,p15:97.9,p50:101.2,p85:104.5,p97:107.3},60:{p3:100.7,p15:103.9,p50:107.4,p85:110.8,p97:113.9}};
-const OMS_WEIGHT = {0:{p3:2.5,p15:2.9,p50:3.3,p85:3.9,p97:4.3},3:{p3:5.0,p15:5.6,p50:6.4,p85:7.2,p97:7.9},6:{p3:6.4,p15:7.1,p50:7.9,p85:8.8,p97:9.7},9:{p3:7.1,p15:7.9,p50:8.9,p85:9.9,p97:10.9},12:{p3:7.7,p15:8.6,p50:9.6,p85:10.7,p97:11.8},18:{p3:8.8,p15:9.8,p50:11.0,p85:12.3,p97:13.5},24:{p3:9.7,p15:10.8,p50:12.2,p85:13.6,p97:15.0},36:{p3:11.3,p15:12.6,p50:14.3,p85:16.0,p97:17.7},48:{p3:12.7,p15:14.2,p50:16.3,p85:18.3,p97:20.3},60:{p3:14.1,p15:15.8,p50:18.3,p85:20.7,p97:23.1}};
 
 // ── FIREBASE SYNC ──
 function setSyncBadge(status) {
@@ -436,40 +469,68 @@ function setSyncBadge(status) {
   else { b.className = 'sync-indicator sync-loading'; b.textContent = '⏳ Conectando'; }
 }
 
-async function saveToFirebase() {
+// Guarda solo las partes indicadas (ej: 'children', 'records/123') en vez de toda la base,
+// así un guardado no pisa lo que otro dispositivo cambió en otra parte.
+async function saveToFirebase(...rutas) {
+  if (!state.cargado) { showToast('⏳ Esperá a que terminen de cargar los datos'); return false; }
+  const cambios = {};
+  rutas.forEach(ruta => {
+    const valor = ruta.split('/').reduce((obj, clave) => obj?.[clave], state);
+    cambios[ruta] = (valor === undefined || (Array.isArray(valor) && !valor.length)) ? null : valor;
+  });
   try {
-    await set(ref(db, 'crecer'), { children: state.children, records: state.records, obs: state.obs||{}, estudios: state.estudios||{}, activeChild: state.activeChild });
+    await update(ref(db, DB_RAIZ), cambios);
     setSyncBadge('ok');
+    return true;
   } catch(e) {
     setSyncBadge('err');
     showToast('⚠️ Error al guardar. Verificá tu conexión.');
+    return false;
   }
 }
 
-// Listen for real-time changes from other devices
-onValue(ref(db, 'crecer'), (snapshot) => {
-  const data = snapshot.val();
-  if (data) {
-    state.children = data.children || [];
-    state.records = data.records || {};
-    state.obs = data.obs || {};
-    state.estudios = data.estudios || {};
-    if (!state.activeChild && state.children.length > 0) state.activeChild = state.children[0].id;
-    else if (state.activeChild && !state.children.find(c => c.id === state.activeChild)) state.activeChild = state.children[0]?.id || null;
-    renderChildrenBar();
-    renderCurrentPage();
-    setSyncBadge('ok');
-  } else {
-    setSyncBadge('ok');
-  }
-  document.getElementById('loadingScreen').style.display = 'none';
-  document.getElementById('appContent').style.display = 'block';
+function mostrarPantalla(cual) {
+  document.getElementById('loadingScreen').style.display = cual === 'carga' ? 'flex' : 'none';
+  document.getElementById('appContent').style.display = cual === 'app' ? 'block' : 'none';
+}
+
+// Escucha los cambios en tiempo real (también los de otros dispositivos)
+onValue(ref(db, DB_RAIZ), (snapshot) => {
+  const data = snapshot.val() || {};
+  state.children = data.children || [];
+  state.records = data.records || {};
+  state.obs = data.obs || {};
+  state.estudios = data.estudios || {};
+  state.cargado = true;
+  // Recalcula la edad de cada registro: versiones viejas guardaban mal algunas (ej: "0D" con miles de días)
+  state.children.forEach(c => {
+    const lista = state.records[c.id];
+    if (!Array.isArray(lista)) return;
+    lista.forEach(r => { r.ageDays = ageToDays(r.edad, r.fecha, c.birth); r.ageMonths = ageToMonths(r.edad, r.fecha, c.birth); });
+    ordenarRegistros(lista);
+  });
+  if (!state.children.find(c => c.id === state.activeChild)) state.activeChild = hijoRecordado() || state.children[0]?.id || null;
+  renderChildrenBar();
+  renderCurrentPage();
+  setSyncBadge('ok');
+  mostrarPantalla('app');
 }, (error) => {
   setSyncBadge('err');
-  document.getElementById('loadingScreen').style.display = 'none';
-  document.getElementById('appContent').style.display = 'block';
+  mostrarPantalla('app');
   showToast('⚠️ No se pudo conectar con Firebase');
 });
+
+// Cada dispositivo recuerda qué hijo tenía seleccionado
+function hijoRecordado() {
+  try {
+    const id = localStorage.getItem('crecer-hijo');
+    return state.children.find(c => c.id === id) ? id : null;
+  } catch { return null; }
+}
+function elegirHijo(id) {
+  state.activeChild = id;
+  try { localStorage.setItem('crecer-hijo', id); } catch {}
+}
 
 // ── NAVIGATION ──
 let currentPage = 'registro';
@@ -499,11 +560,11 @@ function renderChildrenBar() {
     const isActive = state.activeChild === c.id;
     const color = COLORS[i % COLORS.length];
     div.className = 'child-pill' + (isActive ? ' active' : '');
-    div.onclick = () => { state.activeChild = c.id; renderChildrenBar(); renderCurrentPage(); };
-    const avatarInner = c.photo ? `<img src="${c.photo}" alt="${c.name}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none">${c.emoji}</span>` : c.emoji;
+    div.onclick = () => { elegirHijo(c.id); renderChildrenBar(); renderCurrentPage(); };
+    const avatarInner = c.photo ? `<img src="${esc(c.photo)}" alt="${esc(c.name)}" onerror="this.style.display='none';this.nextSibling.style.display='flex'"><span style="display:none">${esc(c.emoji)}</span>` : esc(c.emoji);
     const activeStyle = isActive ? `border-color:${color};box-shadow:0 0 0 3px ${color}33;transform:scale(1.08)` : '';
     const editBtn = isActive ? `<button onclick="event.stopPropagation();openEditChildModal('${c.id}')" style="position:absolute;bottom:-2px;right:-2px;background:${color};border:none;border-radius:50%;width:20px;height:20px;font-size:11px;cursor:pointer;display:flex;align-items:center;justify-content:center;color:#fff;line-height:1">✏️</button>` : '';
-    div.innerHTML = `<div class="child-avatar ${AV_BG[i % AV_BG.length]}" style="position:relative;${activeStyle}">${avatarInner}${editBtn}</div><span style="${isActive?`color:${color};font-weight:900`:''}">${c.name.split(' ')[0]}</span>`;
+    div.innerHTML = `<div class="child-avatar ${AV_BG[i % AV_BG.length]}" style="position:relative;${activeStyle}">${avatarInner}${editBtn}</div><span style="${isActive?`color:${color};font-weight:900`:''}">${esc(c.name.split(' ')[0])}</span>`;
     bar.appendChild(div);
   });
   if (!state.children.length) bar.innerHTML = '<div style="color:var(--muted);font-size:13px;font-weight:600;padding:4px 0;align-self:center;">Agregá tu primer hijo →</div>';
@@ -521,6 +582,7 @@ window.openEditChildModal = (id) => {
     c.classList.toggle('active', c.dataset.emoji === child.emoji);
   });
   state.selectedEditEmoji = child.emoji || '👶';
+  marcarSexo('editSexoPicker', child.sexo);
   // preview photo
   previewEditPhoto(child.photo || '');
   document.getElementById('modalEditChild').classList.add('open');
@@ -554,26 +616,36 @@ window.saveEditChild = async () => {
   const birth = document.getElementById('editChildBirth').value;
   const idx = state.children.findIndex(c => c.id === id);
   if (idx === -1) return;
-  state.children[idx] = { ...state.children[idx], name, photo: photo || '', birth, emoji: state.selectedEditEmoji || '👶' };
+  state.children[idx] = { ...state.children[idx], name, photo: photo || '', birth, emoji: state.selectedEditEmoji || '👶', sexo: leerSexo('editSexoPicker') };
   closeModal('modalEditChild');
   renderChildrenBar();
   renderCurrentPage();
-  await saveToFirebase();
-  showToast('✅ Datos actualizados');
+  if (await saveToFirebase('children')) showToast('✅ Datos actualizados');
 };
 
 window.deleteChild = async (id) => {
   const child = state.children.find(c => c.id === id);
-  if (!confirm(`¿Eliminar a ${child?.name} y TODOS sus registros? Esta acción no se puede deshacer.`)) return;
+  if (!confirm(`¿Eliminar a ${child?.name} y TODOS sus registros, observaciones y estudios? Esta acción no se puede deshacer.`)) return;
   state.children = state.children.filter(c => c.id !== id);
   delete state.records[id];
-  state.activeChild = state.children[0]?.id || null;
+  delete state.obs[id];
+  delete state.estudios[id];
+  elegirHijo(state.children[0]?.id || null);
   closeModal('modalEditChild');
   renderChildrenBar();
   renderCurrentPage();
-  await saveToFirebase();
-  showToast('🗑️ Eliminado');
+  if (await saveToFirebase('children', `records/${id}`, `obs/${id}`, `estudios/${id}`)) showToast('🗑️ Eliminado');
 };
+
+window.selectSexo = (pickerId, el) => {
+  const yaActivo = el.classList.contains('active');
+  document.querySelectorAll(`#${pickerId} .chip`).forEach(c => c.classList.remove('active'));
+  if (!yaActivo) el.classList.add('active');
+};
+function leerSexo(pickerId) { return document.querySelector(`#${pickerId} .chip.active`)?.dataset.sexo || ''; }
+function marcarSexo(pickerId, sexo) {
+  document.querySelectorAll(`#${pickerId} .chip`).forEach(c => c.classList.toggle('active', c.dataset.sexo === sexo));
+}
 
 window.openAddChildModal = () => document.getElementById('modalAddChild').classList.add('open');
 window.closeModal = (id) => document.getElementById(id).classList.remove('open');
@@ -587,21 +659,20 @@ window.addChild = async () => {
   if (!name) { showToast('⚠️ Ingresá el nombre'); return; }
   const id = Date.now().toString();
   const photo = document.getElementById('newChildPhoto').value.trim();
-  state.children.push({ id, name, emoji: state.selectedEmoji || '👶', birth: document.getElementById('newChildBirth').value, photo: photo || '' });
+  state.children.push({ id, name, emoji: state.selectedEmoji || '👶', birth: document.getElementById('newChildBirth').value, photo: photo || '', sexo: leerSexo('sexoPicker') });
   state.records[id] = [];
-  state.activeChild = id;
+  elegirHijo(id);
   closeModal('modalAddChild');
   document.getElementById('newChildName').value = '';
   document.getElementById('newChildBirth').value = '';
   document.getElementById('newChildPhoto').value = '';
   document.getElementById('photoPreviewWrap').style.display = 'none';
+  marcarSexo('sexoPicker', '');
   renderChildrenBar();
   renderCurrentPage();
-  await saveToFirebase();
-  showToast('✅ ' + name + ' agregado/a');
+  if (await saveToFirebase('children')) showToast('✅ ' + name + ' agregado/a');
 };
 
-window.photoError = () => {};
 window.previewPhoto = (url) => {
   const wrap = document.getElementById('photoPreviewWrap');
   const img = document.getElementById('photoPreview');
@@ -615,7 +686,6 @@ window.previewPhoto = (url) => {
   img.onload = () => { status.textContent = '✅ Foto cargada'; status.style.color = 'var(--green)'; };
   img.onerror = () => { status.textContent = '❌ URL inválida o no es imagen directa'; status.style.color = 'var(--red)'; };
 };
-window.photoError = () => {};
 
 
 // ── RECORDS ──
@@ -629,29 +699,30 @@ window.saveRecord = async () => {
   if (!fecha && !edad) { showToast('⚠️ Ingresá fecha o edad'); return; }
   if (isNaN(peso) && isNaN(talla) && isNaN(pc)) { showToast('⚠️ Ingresá al menos una medida'); return; }
 
-  const child = state.children.find(c => c.id === state.activeChild);
+  const childId = state.activeChild;
+  const child = state.children.find(c => c.id === childId);
   const record = { id: Date.now().toString(), fecha, edad, peso: isNaN(peso)?null:peso, talla: isNaN(talla)?null:talla, pc: isNaN(pc)?null:pc, ageMonths: ageToMonths(edad, fecha, child?.birth), ageDays: ageToDays(edad, fecha, child?.birth) };
-  if (!state.records[state.activeChild]) state.records[state.activeChild] = [];
-  state.records[state.activeChild].push(record);
-  state.records[state.activeChild].sort((a,b) => (a.ageDays ?? a.ageMonths*30.44 ?? 999999)-(b.ageDays ?? b.ageMonths*30.44 ?? 999999));
+  if (!state.records[childId]) state.records[childId] = [];
+  state.records[childId].push(record);
+  ordenarRegistros(state.records[childId]);
 
   ['inp-edad','inp-peso','inp-talla','inp-pc'].forEach(id => document.getElementById(id).value = '');
-  document.getElementById('inp-fecha').value = new Date().toISOString().split('T')[0];
+  document.getElementById('inp-fecha').value = hoyISO();
 
   const btn = document.getElementById('saveBtn');
   btn.disabled = true; btn.textContent = '⏳ Guardando...';
-  await saveToFirebase();
+  const ok = await saveToFirebase(`records/${childId}`);
   btn.disabled = false; btn.textContent = '💾 Guardar medidas';
   renderRecordsTable();
-  showToast('💾 Registro guardado y sincronizado');
+  if (ok) showToast('💾 Registro guardado y sincronizado');
 };
 
 window.deleteRecord = async (childId, recordId) => {
   if (!confirm('¿Eliminar este registro?')) return;
   state.records[childId] = state.records[childId].filter(r => r.id !== recordId);
-  await saveToFirebase();
+  const ok = await saveToFirebase(`records/${childId}`);
   renderRecordsTable();
-  showToast('🗑️ Registro eliminado');
+  if (ok) showToast('🗑️ Registro eliminado');
 };
 
 window.openEditRecord = (childId, recordId) => {
@@ -681,11 +752,11 @@ window.saveEditRecord = async () => {
   const idx = (state.records[childId] || []).findIndex(r => r.id === recordId);
   if (idx === -1) return;
   state.records[childId][idx] = { id: recordId, fecha, edad, peso: isNaN(peso)?null:peso, talla: isNaN(talla)?null:talla, pc: isNaN(pc)?null:pc, ageMonths: ageToMonths(edad, fecha, child?.birth), ageDays: ageToDays(edad, fecha, child?.birth) };
-  state.records[childId].sort((a,b) => (a.ageDays ?? a.ageMonths*30.44 ?? 999999)-(b.ageDays ?? b.ageMonths*30.44 ?? 999999));
+  ordenarRegistros(state.records[childId]);
   closeModal('modalEditRecord');
-  await saveToFirebase();
+  const ok = await saveToFirebase(`records/${childId}`);
   renderRecordsTable();
-  showToast('✅ Registro actualizado');
+  if (ok) showToast('✅ Registro actualizado');
 };
 
 function renderRecordsTable() {
@@ -702,7 +773,7 @@ function renderRecordsTable() {
   body.innerHTML = [...records].reverse().map(r => `
     <div style="display:flex;align-items:center;padding:12px 16px;border-bottom:1px solid var(--border);gap:8px">
       <div style="flex:1;min-width:0">
-        <div style="font-weight:800;font-size:14px">${r.edad || fmtDate(r.fecha)}</div>
+        <div style="font-weight:800;font-size:14px">${esc(r.edad) || fmtDate(r.fecha)}</div>
         <div style="font-size:11px;color:var(--muted)">${r.fecha ? fmtDate(r.fecha) : ''}</div>
         <div style="display:flex;gap:10px;margin-top:4px;flex-wrap:wrap">
           ${r.peso!=null?`<span style="font-size:12px;font-weight:700;background:#FFF0F0;color:#E74C3C;padding:2px 7px;border-radius:8px">⚖️ ${r.peso}kg</span>`:''}
@@ -741,8 +812,8 @@ window.toggleTrimestral = () => {
 function agruparPorTrimestre(records, metric) {
   const grupos = {}; // clave: trimestre en meses (0,3,6,9,12...)
   records.forEach(r => {
-    if (r[metric] == null) return;
-    const meses = r.ageMonths || 0;
+    if (r[metric] == null || r.ageMonths == null) return;
+    const meses = r.ageMonths;
     const trimestre = Math.floor(meses / 3) * 3;
     if (!grupos[trimestre]) grupos[trimestre] = { vals: [], label: null };
     grupos[trimestre].vals.push(r[metric]);
@@ -790,7 +861,7 @@ function renderEvolutionChart() {
   if (evoChart) evoChart.destroy();
   evoChart = new Chart(document.getElementById('evolutionChart').getContext('2d'), {
     type: 'line',
-    data: { labels, datasets: [{ label: metricLabel(selMetric), data, borderColor: color, backgroundColor: color+'22', fill: true, tension: 0.4, pointBackgroundColor: color, pointRadius: 5, borderWidth: 3 }] },
+    data: { labels, datasets: [{ label: metricLabel(selMetric), data, borderColor: color, backgroundColor: color+'22', fill: true, tension: 0.4, spanGaps: true, pointBackgroundColor: color, pointRadius: 5, borderWidth: 3 }] },
     options: { responsive: true, maintainAspectRatio: false, plugins: { legend: { display: false } }, scales: { x: { grid: { display: false }, ticks: { font: { family:'Nunito', weight:'700' }, maxRotation:30 } }, y: { grid: { color:'#f0f0f0' }, ticks: { font: { family:'Nunito', weight:'700' } } } } }
   });
   const valid = data.filter(v=>v!=null);
@@ -799,43 +870,42 @@ function renderEvolutionChart() {
     const last=valid[valid.length-1], first=valid[0], diff=(last-first).toFixed(1), unit=selMetric==='peso'?'kg':'cm';
     sr.innerHTML = `<div class="stat-card"><div class="stat-val">${last}${unit}</div><div class="stat-label">Último</div></div><div class="stat-card"><div class="stat-val">${first}${unit}</div><div class="stat-label">Primero</div></div><div class="stat-card"><div class="stat-val" style="color:var(--green)">+${diff}${unit}</div><div class="stat-label">Total</div></div>`;
   } else sr.innerHTML = '';
-  renderPercentiles(records);
+  renderPercentiles(records, child);
 }
 
-function renderPercentiles(records) {
+// Percentil OMS de la última medida de talla, peso y PC (según sexo y edad exacta)
+function renderPercentiles(records, child) {
   const el = document.getElementById('percentileContent');
-  if (!records.length) { el.innerHTML='<p style="color:var(--muted);font-size:13px">No hay datos aún.</p>'; return; }
-  const last = records[records.length-1];
-  if (!last.ageMonths) { el.innerHTML='<p style="color:var(--muted);font-size:13px">Ingresá la edad para ver percentiles.</p>'; return; }
-  const ak = closestOmsAge(last.ageMonths), html=[];
-  if (last.talla && OMS_HEIGHT[ak]) html.push(renderPctBar('Talla',last.talla,'cm',calcPct(last.talla,OMS_HEIGHT[ak]),'#4ECDC4'));
-  if (last.peso && OMS_WEIGHT[ak]) html.push(renderPctBar('Peso',last.peso,'kg',calcPct(last.peso,OMS_WEIGHT[ak]),'#FF6B6B'));
-  el.innerHTML = html.join('') || '<p style="color:var(--muted);font-size:13px">Sin datos suficientes.</p>';
+  const nota = txt => `<p style="color:var(--muted);font-size:13px;font-weight:600">${txt}</p>`;
+  if (!records.length) { el.innerHTML = nota('No hay datos aún.'); return; }
+  if (!child?.sexo) { el.innerHTML = nota('Indicá si es nena o varón tocando ✏️ en su foto para ver los percentiles.'); return; }
+  const medidas = [['talla','Talla','cm','#4ECDC4'], ['peso','Peso','kg','#FF6B6B'], ['pc','PC','cm','#5B6EE8']];
+  const html = medidas.map(([m, label, unit, color]) => {
+    const r = [...records].reverse().find(x => x[m] != null && x.ageMonths != null);
+    if (!r) return '';
+    const res = percentilOMS(m, child.sexo, r.ageMonths, r[m]);
+    if (!res) return r.ageMonths > EDAD_MAX_OMS[m] ? nota(`${label}: la OMS no tiene referencia después de los ${EDAD_MAX_OMS[m] / 12} años.`) : '';
+    return renderPctBar(label, r[m], unit, res.pct, color, r.edad || fmtDate(r.fecha));
+  });
+  el.innerHTML = html.join('') || nota('Ingresá la edad (o la fecha de nacimiento del hijo) para ver percentiles.');
 }
 
-function renderPctBar(label,val,unit,pct,color) {
-  const lbl = pct<3?'< P3':pct>97?'> P97':'P'+Math.round(pct);
-  const sc = pct<3||pct>97?'var(--red)':pct<15||pct>85?'#F39C12':'var(--green)';
-  return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:800">${label}: ${val} ${unit}</span><span style="font-size:12px;font-weight:800;color:${sc}">${lbl}</span></div><div class="pct-bar-track"><div class="pct-bar-fill" style="width:${Math.min(Math.max(pct,3),97)}%;background:${color}"></div></div><div style="display:flex;justify-content:space-between;font-size:10px;color:var(--muted);margin-top:3px;font-weight:700"><span>P3</span><span>P15</span><span>P50</span><span>P85</span><span>P97</span></div></div>`;
+function renderPctBar(label, val, unit, pct, color, cuando) {
+  const lbl = pct < 1 ? '< P1' : pct > 99 ? '> P99' : 'P' + Math.round(pct);
+  const sc = pct < 3 || pct > 97 ? 'var(--red)' : pct < 15 || pct > 85 ? '#F39C12' : 'var(--green)';
+  const marcas = [3, 15, 50, 85, 97].map(p => `<span style="left:${p}%">P${p}</span>`).join('');
+  return `<div style="margin-bottom:16px"><div style="display:flex;justify-content:space-between;margin-bottom:6px"><span style="font-size:13px;font-weight:800">${label}: ${val} ${unit} <span style="color:var(--muted);font-weight:700">· ${esc(cuando)}</span></span><span style="font-size:12px;font-weight:800;color:${sc}">${lbl}</span></div><div class="pct-bar-track"><div class="pct-bar-fill" style="width:${Math.min(Math.max(pct, 2), 98)}%;background:${color}"></div></div><div class="pct-marcas">${marcas}</div></div>`;
 }
-
-function calcPct(val,refs) {
-  if(val<=refs.p3) return 3; if(val<=refs.p15) return 3+(val-refs.p3)/(refs.p15-refs.p3)*12;
-  if(val<=refs.p50) return 15+(val-refs.p15)/(refs.p50-refs.p15)*35; if(val<=refs.p85) return 50+(val-refs.p50)/(refs.p85-refs.p50)*35;
-  if(val<=refs.p97) return 85+(val-refs.p85)/(refs.p97-refs.p85)*12; return 97;
-}
-function closestOmsAge(m) { return [0,3,6,9,12,18,24,36,48,60].reduce((a,b)=>Math.abs(b-m)<Math.abs(a-m)?b:a); }
 
 function renderComparison() {
-  const legend = document.getElementById('compareLegend');
   const table = document.getElementById('compareTable');
-  if (state.children.length < 2) {
-    if (legend) legend.innerHTML='<p style="color:var(--muted);font-size:13px;font-weight:600">Necesitás al menos 2 hijos.</p>';
-    if(cmpChart)cmpChart.destroy(); table.innerHTML=''; return;
-  }
+  const vacio = state.children.length < 2;
+  document.getElementById('compareEmpty').style.display = vacio ? 'block' : 'none';
+  document.getElementById('compareContent').style.display = vacio ? 'none' : 'block';
+  if (vacio) { if (cmpChart) { cmpChart.destroy(); cmpChart = null; } return; }
 
   const datasets = state.children.map((child,i) => {
-    const pts = (state.records[child.id]||[]).filter(r=>r[cmpMetric]!=null&&r.ageMonths).map(r=>({x:r.ageMonths,y:r[cmpMetric]}));
+    const pts = (state.records[child.id]||[]).filter(r=>r[cmpMetric]!=null&&r.ageMonths!=null).map(r=>({x:r.ageMonths,y:r[cmpMetric]}));
     return {
       label: child.name,
       data: pts,
@@ -914,7 +984,7 @@ function renderComparison() {
     // buscar registro 0D o el primero con ageDays === 0
     const birth = recs.find(r => isNacimiento(r)) || recs.find(r => r.ageDays === 0);
     return `<tr>
-      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${c.name}</b></td>
+      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${esc(c.name)}</b></td>
       <td>${birth?.talla != null ? birth.talla + ' cm' : '—'}</td>
       <td>${birth?.peso != null ? birth.peso + ' kg' : '—'}</td>
       <td>${birth?.pc != null ? birth.pc + ' cm' : '—'}</td>
@@ -930,8 +1000,8 @@ function renderComparison() {
     const first = recs.filter(r=>r[cmpMetric]!=null).shift();
     const diff = (last && first && last[cmpMetric]!==first[cmpMetric]) ? `+${(last[cmpMetric]-first[cmpMetric]).toFixed(1)}${unit}` : '—';
     return `<tr>
-      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${c.name}</b></td>
-      <td>${last?.edad||'—'}</td>
+      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${esc(c.name)}</b></td>
+      <td>${esc(last?.edad)||'—'}</td>
       <td>${last?last[cmpMetric]+' '+unit:'—'}</td>
       <td style="color:var(--green);font-weight:800">${diff}</td>
     </tr>`;
@@ -943,8 +1013,8 @@ function renderComparison() {
   const gainRows = state.children.map((c,i)=>{
     const recs = state.records[c.id]||[];
     // peso por mes
-    const pesoRecs = recs.filter(r=>r.peso!=null&&r.ageMonths);
-    const tallaRecs = recs.filter(r=>r.talla!=null&&r.ageMonths);
+    const pesoRecs = recs.filter(r=>r.peso!=null&&r.ageMonths!=null);
+    const tallaRecs = recs.filter(r=>r.talla!=null&&r.ageMonths!=null);
 
     let kgMes = '—', cmMes = '—';
     if (pesoRecs.length >= 2) {
@@ -959,7 +1029,7 @@ function renderComparison() {
     }
 
     return `<tr>
-      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${c.name}</b></td>
+      <td><span style="color:${COLORS[i%COLORS.length]};font-size:16px">●</span> <b>${esc(c.name)}</b></td>
       <td style="color:#FF6B6B;font-weight:800">${kgMes}</td>
       <td style="color:var(--accent2);font-weight:800">${cmMes}</td>
     </tr>`;
@@ -974,9 +1044,9 @@ function renderSummary() {
     const records = state.records[child.id]||[], color=COLORS[i%COLORS.length], last=records[records.length-1], first=records[0];
     const tg=(last?.talla!=null&&first?.talla!=null&&last.talla!==first.talla)?`+${(last.talla-first.talla).toFixed(1)} cm`:'—';
     const wg=(last?.peso!=null&&first?.peso!=null&&last.peso!==first.peso)?`+${(last.peso-first.peso).toFixed(1)} kg`:'—';
-    const rows=records.map(r=>`<tr><td>${r.edad||fmtDate(r.fecha)}</td><td>${r.fecha?fmtDate(r.fecha):'—'}</td><td>${r.peso!=null?r.peso+' kg':'—'}</td><td>${r.talla!=null?r.talla+' cm':'—'}</td><td>${r.pc!=null?r.pc+' cm':'—'}</td></tr>`).join('');
-    const summaryAvatar = child.photo ? `<img src="${child.photo}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border)">` : `<div class="child-avatar ${AV_BG[i%AV_BG.length]}" style="width:40px;height:40px;font-size:20px">${child.emoji}</div>`;
-    return `<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">${summaryAvatar}<div><div style="font-size:16px;font-weight:900">${child.name}</div><div style="font-size:12px;color:var(--muted);font-weight:600">${records.length} registro${records.length!==1?'s':''}</div></div></div><div class="stats-row" style="margin-bottom:12px"><div class="stat-card"><div class="stat-val" style="color:${color}">${records.length}</div><div class="stat-label">Registros</div></div><div class="stat-card"><div class="stat-val" style="color:var(--green);font-size:16px">${tg}</div><div class="stat-label">Crecimiento</div></div><div class="stat-card"><div class="stat-val" style="color:#FF6B6B;font-size:16px">${wg}</div><div class="stat-label">Peso ganado</div></div></div>${records.length?`<div class="table-wrap"><table class="data-table"><thead><tr><th>Edad</th><th>Fecha</th><th>Peso</th><th>Talla</th><th>PC</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Sin registros aún.</p>'}</div>`;
+    const rows=records.map(r=>`<tr><td>${esc(r.edad)||fmtDate(r.fecha)}</td><td>${r.fecha?fmtDate(r.fecha):'—'}</td><td>${r.peso!=null?r.peso+' kg':'—'}</td><td>${r.talla!=null?r.talla+' cm':'—'}</td><td>${r.pc!=null?r.pc+' cm':'—'}</td></tr>`).join('');
+    const summaryAvatar = child.photo ? `<img src="${esc(child.photo)}" style="width:40px;height:40px;border-radius:50%;object-fit:cover;border:2px solid var(--border)">` : `<div class="child-avatar ${AV_BG[i%AV_BG.length]}" style="width:40px;height:40px;font-size:20px">${esc(child.emoji)}</div>`;
+    return `<div class="card"><div style="display:flex;align-items:center;gap:10px;margin-bottom:14px">${summaryAvatar}<div><div style="font-size:16px;font-weight:900">${esc(child.name)}</div><div style="font-size:12px;color:var(--muted);font-weight:600">${records.length} registro${records.length!==1?'s':''}</div></div></div><div class="stats-row" style="margin-bottom:12px"><div class="stat-card"><div class="stat-val" style="color:${color}">${records.length}</div><div class="stat-label">Registros</div></div><div class="stat-card"><div class="stat-val" style="color:var(--green);font-size:16px">${tg}</div><div class="stat-label">Crecimiento</div></div><div class="stat-card"><div class="stat-val" style="color:#FF6B6B;font-size:16px">${wg}</div><div class="stat-label">Peso ganado</div></div></div>${records.length?`<div class="table-wrap"><table class="data-table"><thead><tr><th>Edad</th><th>Fecha</th><th>Peso</th><th>Talla</th><th>PC</th></tr></thead><tbody>${rows}</tbody></table></div>`:'<p style="color:var(--muted);font-size:13px;text-align:center;padding:12px">Sin registros aún.</p>'}</div>`;
   }).join('');
 }
 
@@ -985,19 +1055,19 @@ window.saveObs = async () => {
   if (!state.activeChild) { showToast('⚠️ Seleccioná un hijo'); return; }
   const text = document.getElementById('obsText').value.trim();
   if (!text) { showToast('⚠️ Escribí algo primero'); return; }
-  if (!state.obs) state.obs = {};
-  if (!state.obs[state.activeChild]) state.obs[state.activeChild] = [];
-  state.obs[state.activeChild].push({ id: Date.now().toString(), text, fecha: new Date().toISOString().split('T')[0] });
+  const childId = state.activeChild;
+  if (!state.obs[childId]) state.obs[childId] = [];
+  state.obs[childId].push({ id: Date.now().toString(), text, fecha: hoyISO() });
   document.getElementById('obsText').value = '';
-  await saveToFirebase();
+  const ok = await saveToFirebase(`obs/${childId}`);
   renderObs();
-  showToast('📝 Observación guardada');
+  if (ok) showToast('📝 Observación guardada');
 };
 
 window.deleteObs = async (childId, id) => {
   if (!confirm('¿Eliminar esta observación?')) return;
   state.obs[childId] = state.obs[childId].filter(o => o.id !== id);
-  await saveToFirebase();
+  await saveToFirebase(`obs/${childId}`);
   renderObs();
 };
 
@@ -1019,9 +1089,9 @@ window.saveEditObs = async () => {
   if (idx === -1) return;
   state.obs[childId][idx].text = text;
   closeModal('modalEditObs');
-  await saveToFirebase();
+  const ok = await saveToFirebase(`obs/${childId}`);
   renderObs();
-  showToast('✅ Observación actualizada');
+  if (ok) showToast('✅ Observación actualizada');
 };
 
 function renderObs() {
@@ -1039,7 +1109,7 @@ function renderObs() {
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="flex:1">
           <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px">${fmtDate(o.fecha)}</div>
-          <div style="font-size:14px;font-weight:600;line-height:1.5;white-space:pre-wrap">${o.text}</div>
+          <div style="font-size:14px;font-weight:600;line-height:1.5;white-space:pre-wrap">${esc(o.text)}</div>
         </div>
         <div style="display:flex;flex-direction:row;gap:4px;flex-shrink:0">
           <button class="del-btn" onclick="openEditObs('${state.activeChild}','${o.id}')" style="font-size:18px;opacity:0.6">✏️</button>
@@ -1059,24 +1129,24 @@ window.saveEstudio = async () => {
   const lugar = document.getElementById('estudioLugar').value.trim();
   const edad = document.getElementById('estudioEdad').value.trim();
   const nota = document.getElementById('estudioNota').value.trim();
-  if (!state.estudios) state.estudios = {};
-  if (!state.estudios[state.activeChild]) state.estudios[state.activeChild] = [];
-  state.estudios[state.activeChild].push({ id: Date.now().toString(), tipo, fecha, hora, lugar, edad, nota });
+  const childId = state.activeChild;
+  if (!state.estudios[childId]) state.estudios[childId] = [];
+  state.estudios[childId].push({ id: Date.now().toString(), tipo, fecha, hora, lugar, edad, nota });
   document.getElementById('estudioTipo').value = '';
   document.getElementById('estudioFecha').value = '';
   document.getElementById('estudioHora').value = '';
   document.getElementById('estudioLugar').value = '';
   document.getElementById('estudioEdad').value = '';
   document.getElementById('estudioNota').value = '';
-  await saveToFirebase();
+  const ok = await saveToFirebase(`estudios/${childId}`);
   renderEstudios();
-  showToast('🩺 Estudio guardado');
+  if (ok) showToast('🩺 Estudio guardado');
 };
 
 window.deleteEstudio = async (childId, id) => {
   if (!confirm('¿Eliminar este estudio?')) return;
   state.estudios[childId] = state.estudios[childId].filter(e => e.id !== id);
-  await saveToFirebase();
+  await saveToFirebase(`estudios/${childId}`);
   renderEstudios();
 };
 
@@ -1094,13 +1164,13 @@ function renderEstudios() {
     <div class="card" style="margin-bottom:10px">
       <div style="display:flex;justify-content:space-between;align-items:flex-start;gap:8px">
         <div style="flex:1">
-          <div style="font-size:15px;font-weight:900;margin-bottom:4px">${e.tipo}</div>
+          <div style="font-size:15px;font-weight:900;margin-bottom:4px">${esc(e.tipo)}</div>
           <div style="font-size:11px;color:var(--muted);font-weight:700;margin-bottom:4px;display:flex;flex-wrap:wrap;gap:8px">
-            ${e.fecha ? `<span>📅 ${fmtDate(e.fecha)}${e.hora ? ' ' + e.hora : ''}</span>` : ''}
-            ${e.lugar ? `<span>📍 ${e.lugar}</span>` : ''}
-            ${e.edad ? `<span>👶 ${e.edad}</span>` : ''}
+            ${e.fecha ? `<span>📅 ${fmtDate(e.fecha)}${e.hora ? ' ' + esc(e.hora) : ''}</span>` : ''}
+            ${e.lugar ? `<span>📍 ${esc(e.lugar)}</span>` : ''}
+            ${e.edad ? `<span>👶 ${esc(e.edad)}</span>` : ''}
           </div>
-          ${e.nota ? `<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.5;white-space:pre-wrap">${e.nota}</div>` : ''}
+          ${e.nota ? `<div style="font-size:13px;font-weight:600;color:var(--text);line-height:1.5;white-space:pre-wrap">${esc(e.nota)}</div>` : ''}
         </div>
         <button class="del-btn" onclick="deleteEstudio('${state.activeChild}','${e.id}')" style="font-size:18px;flex-shrink:0;opacity:0.6;align-self:flex-start">🗑️</button>
       </div>
@@ -1108,6 +1178,14 @@ function renderEstudios() {
 }
 
 // ── HELPERS ──
+// Escapa texto escrito por el usuario antes de meterlo en el HTML (evita que "<" rompa la pantalla)
+function esc(s) { return String(s ?? '').replace(/[&<>"']/g, ch => ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[ch])); }
+// Fecha de hoy en hora local (toISOString usa UTC y de noche da la fecha de mañana)
+function hoyISO() { const d = new Date(); return new Date(d.getTime() - d.getTimezoneOffset() * 60000).toISOString().split('T')[0]; }
+// Ordena por edad; los registros sin edad calculable van al final, por fecha
+function ordenarRegistros(lista) {
+  lista.sort((a, b) => (a.ageDays ?? Infinity) - (b.ageDays ?? Infinity) || (a.fecha || '').localeCompare(b.fecha || ''));
+}
 function fmtDate(d) { if(!d) return ''; const [y,m,day]=d.split('-'); return `${day}/${m}/${y}`; }
 function metricLabel(m) { return {talla:'Talla (cm)',peso:'Peso (kg)',pc:'PC (cm)'}[m]||m; }
 
@@ -1151,7 +1229,11 @@ function showToast(msg) { const t=document.getElementById('toast'); t.textConten
 window.showToast = showToast;
 
 // Init date
-document.getElementById('inp-fecha').value = new Date().toISOString().split('T')[0];
+document.getElementById('inp-fecha').value = hoyISO();
+if (MODO_PRUEBA) {
+  document.getElementById('bannerPrueba').style.display = 'block';
+  document.title = 'Crecer (prueba)';
+}
 </script>
 </body>
 </html>
